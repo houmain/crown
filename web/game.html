@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+<html lang="en-us" style="height:100%">
+<head>
+  <meta charset="utf-8">
+  <title>The Crown And The Bombs</title>
+</head>
+<body style="margin:0; height:100%; background-color:black; overflow:hidden; text-align:center" ondblclick="this.requestFullscreen()">
+
+<canvas id="wa_canvas" style="height:100%; max-width:100%; object-fit:contain; image-rendering:crisp-edges; image-rendering:pixelated;" oncontextmenu="event.preventDefault()"></canvas>
+
+<script>
+"use strict"
+var WA = {
+  canvas: document.getElementById('wa_canvas'),
+  print: text => console.log(text),
+  error: (code, msg) => console.error(code + ' - ' + msg),
+  started: () => console.log('started'),
+}
+
+</script>
+<script defer src="game.js"></script>
+</body>
+</html>
