@@ -3,7 +3,7 @@ set -e -u
 
 project="game"
 
-out_dir=$(realpath "web")
+out_dir=$(realpath "gh-pages")
 wajic_dir="libs/wajic"
 emscripten_system="libs/emscripten/system"
 
@@ -43,7 +43,7 @@ clang \
 
 # generate webpage (HTML only when it does not exist)
 generate_html=""
-if [ ! -f "${out_dir}/${project}.html" ]; then generate_html="${out_dir}/${project}.html"; fi
+if [ ! -f "${out_dir}/index.html" ]; then generate_html="${out_dir}/index.html"; fi
 
 flags="-no_minify"
 flags="-rle"
