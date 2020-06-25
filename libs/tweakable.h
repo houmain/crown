@@ -64,8 +64,9 @@
 #define _TWEAKABLE_3(CTOR, A0, A1, A2) (CTOR)(A0, A1, A2)
 #define _TWEAKABLE_4(CTOR, A0, A1, A2, A3) (CTOR)(A0, A1, A2, A3)
 #define _TWEAKABLE_N(a, b, c, d, e, NAME, ...) NAME
-#define TWEAKABLE(...) _TWEAKABLE_N(__VA_ARGS__, \
-    _TWEAKABLE_4, _TWEAKABLE_3, _TWEAKABLE_2, _TWEAKABLE_1, _TWEAKABLE_0)(__VA_ARGS__)
+#define _TWEAKABLE_EXPAND(x) x
+#define TWEAKABLE(...) _TWEAKABLE_EXPAND(_TWEAKABLE_N(__VA_ARGS__, \
+    _TWEAKABLE_4, _TWEAKABLE_3, _TWEAKABLE_2, _TWEAKABLE_1, _TWEAKABLE_0)(__VA_ARGS__))
 
 #else // TWEAKABLE_ENABLED
 
@@ -110,9 +111,9 @@
     })
 
 #define _TWEAKABLE_N(a, b, c, d, e, NAME, ...) NAME
-
-#define TWEAKABLE(...) _TWEAKABLE_N(__VA_ARGS__, \
-    _TWEAKABLE_4, _TWEAKABLE_3, _TWEAKABLE_2, _TWEAKABLE_1, _TWEAKABLE_0)(__VA_ARGS__)
+#define _TWEAKABLE_EXPAND(x) x
+#define TWEAKABLE(...) _TWEAKABLE_EXPAND(_TWEAKABLE_N(__VA_ARGS__, \
+    _TWEAKABLE_4, _TWEAKABLE_3, _TWEAKABLE_2, _TWEAKABLE_1, _TWEAKABLE_0)(__VA_ARGS__))
 
 namespace _tweakable {
   const char* get_arguments(const char* filename, int line);

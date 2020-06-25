@@ -114,11 +114,13 @@ void SpriteBatch::flush() {
   auto prev_offset = size_t{ };
   for (const auto& [offset, texture] : m_texture_switch) {
     if (offset != prev_offset)
-      glDrawArrays(GL_TRIANGLES, prev_offset * 6, (offset - prev_offset) * 6);
+      glDrawArrays(GL_TRIANGLES, static_cast<GLint>(prev_offset) * 6, 
+        static_cast<GLsizei>(offset - prev_offset) * 6);
     texture->bind(0);
     prev_offset = offset;
   }
-  glDrawArrays(GL_TRIANGLES, prev_offset * 6, (m_client_buffer.size() - prev_offset) * 6);
+  glDrawArrays(GL_TRIANGLES, static_cast<GLint>(prev_offset) * 6, 
+    static_cast<GLsizei>(m_client_buffer.size() - prev_offset) * 6);
   m_client_buffer.clear();
   m_texture_switch.clear();
 }

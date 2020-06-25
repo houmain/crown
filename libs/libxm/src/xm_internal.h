@@ -11,6 +11,10 @@
 #include <math.h>
 #include <string.h>
 
+#if defined(_MSC_VER)
+# define restrict
+#endif
+
 #if XM_DEBUG
 #include <stdio.h>
 #define DEBUG(fmt, ...) do {                    \

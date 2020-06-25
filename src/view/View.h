@@ -24,7 +24,7 @@ private:
   template<size_t N>
   void draw_animation(float x, float y,
       const sprites::Sprite* const(&frames)[N], float position) {
-    do_draw_animation(x, y, frames, std::fmod(position, N));
+    do_draw_animation(x, y, frames, std::fmod(position, static_cast<float>(N)));
   }
 
   const State& m_state;

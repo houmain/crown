@@ -54,7 +54,7 @@ void platform_on_setup() {
   const auto font = get_resource("upheavtt.ttf");
   nvgCreateFontMem(vg, "sans",
     static_cast<unsigned char*>(const_cast<void*>(font.first)),
-    font.second, 0);
+    static_cast<int>(font.second), 0);
 
   bind_default_target(native_width, native_height);
   game = std::make_unique<Game>();
@@ -72,7 +72,7 @@ void platform_on_mouse_button(int button, bool down) {
 void platform_on_mouse_move(int x, int y) {
 }
 
-void platform_on_mouse_wheel(float dx, float dy) {
+void platform_on_mouse_wheel(double dx, double dy) {
 }
 
 void platform_on_update(int window_width, int window_height, double time) {
@@ -86,10 +86,11 @@ void platform_on_update(int window_width, int window_height, double time) {
   const auto scale = std::min(
     window_width / static_cast<float>(native_width),
     window_height / static_cast<float>(native_height));
-  const auto scale_int = std::max(1.0f, std::floor(scale));
+  const auto scale_int = std::max(static_cast<int>(scale), 1);
 
   // draw to target buffer
-  target.bind(native_width * scale_int, native_height * scale_int, scale_int);
+  target.bind(native_width * scale_int, native_height * scale_int, 
+    static_cast<float>(scale_int));
 
   // update and draw game
   game->update(time);

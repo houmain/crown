@@ -31,7 +31,7 @@ ShaderProgram::ShaderProgram(std::string_view vs_source,
   glAttachShader(m_program, fs);
   glDeleteShader(fs);
 
-  for (size_t i = 0; i < attributes.size(); ++i)
+  for (auto i = 0u; i < attributes.size(); ++i)
     glBindAttribLocation(m_program, i, attributes[i]);
 
   glLinkProgram(m_program);

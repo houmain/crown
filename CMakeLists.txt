@@ -28,6 +28,12 @@ set(SOURCES
     resources/resources.inc
 )
 
+if(WIN32)
+    set(SOURCES ${SOURCES}
+        libs/glad/glad_gl.c
+    )
+endif()
+
 file(GLOB_RECURSE HEADERS include *.h)
 
 add_compile_definitions(XM_DEFENSIVE=0 XM_LIBXMIZE_DELTA_SAMPLES=0 XM_DEBUG=0 XM_LINEAR_INTERPOLATION=0)
@@ -39,6 +45,27 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   libs/libxm
 )
 
-target_link_libraries(${PROJECT_NAME} GL glfw dl pthread)
+if(NOT WIN32)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
+  target_link_libraries(${PROJECT_NAME} GL glfw dl pthread)
+else()
+  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+  target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
+  include (ExternalProject)
+  ExternalProject_Add(glfw
+	  GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG master
+	  CMAKE_ARGS ${CMAKE_ARGS}
+		  -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}
+		  -DCMAKE_PREFIX_PATH=${CMAKE_CURRENT_BINARY_DIR}
+		  -DGLFW_BUILD_DOCS=Off
+		  -DGLFW_BUILD_TESTS=Off
+		  -DGLFW_BUILD_EXAMPLES=Off
+	  UPDATE_COMMAND ""
+  )
+  add_dependencies(${PROJECT_NAME} glfw)
+  target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
+  target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/lib)
+  target_link_libraries(${PROJECT_NAME} PRIVATE glfw3)
+endif()

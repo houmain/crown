@@ -9,10 +9,7 @@ namespace {
   ShaderProgram g_program;
 
   void bind_target(GLuint fbo, int width, int height, float scale) {
-    static GLuint s_current;
-    if (std::exchange(s_current, fbo) != fbo)
-      glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, width, height);
     g_target_width = width;
     g_target_height = height;
@@ -24,8 +21,8 @@ void bind_default_target(int width, int height, float scale) {
   bind_target(GL_NONE, width, height, scale);
 }
 
-int target_width() { return g_target_width / g_target_scale; }
-int target_height() { return g_target_height / g_target_scale; }
+int target_width() { return static_cast<int>(g_target_width / g_target_scale); }
+int target_height() { return static_cast<int>(g_target_height / g_target_scale); }
 float target_scale() { return g_target_scale; }
 
 void Target::bind(int width, int height, float scale, TextureFormat format) {

@@ -15,8 +15,8 @@ namespace {
 
   void set_fullscreen(bool fullscreen) {
     auto monitor = glfwGetPrimaryMonitor();
-    auto x = 0, y = 0, w = 0, h = 0;
-    glfwGetMonitorWorkarea(monitor, &x, &y, &w, &h);
+    const auto video_mode = glfwGetVideoMode(monitor);
+    auto x = 0, y = 0, w = video_mode->width, h = video_mode->height;
     if (!fullscreen) {
       x += (w - platform_initial_width) / 2;
       y += (h - platform_initial_height) / 2;
@@ -24,7 +24,7 @@ namespace {
       h = platform_initial_height;
       monitor = nullptr;
     }
-    glfwSetWindowMonitor(g_window, monitor, x, y, w, h, GLFW_DONT_CARE);
+    glfwSetWindowMonitor(g_window, monitor, x, y, w, h, video_mode->refreshRate);
     if (!fullscreen)
       glfwRestoreWindow(g_window);
   }
@@ -72,7 +72,11 @@ void platform_error(const char* message) {
   std::abort();
 }
 
+#if !defined(_WIN32)
 int main() {
+#else
+int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+#endif
   glfwSetErrorCallback(error_callback);
 
   if (!glfwInit())
@@ -95,7 +99,6 @@ int main() {
     GLFW_DONT_CARE, GLFW_DONT_CARE);
   glfwSetWindowAspectRatio(g_window,
     platform_minimum_width, platform_minimum_height);
-
 
   glfwSetWindowMaximizeCallback(g_window, maximize_callback);
   glfwSetKeyCallback(g_window, key_callback);
