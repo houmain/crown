@@ -3,7 +3,7 @@ set -e -u
 
 project="game"
 
-out_dir=$(realpath "gh-pages")
+out_dir=$(realpath "docs")
 wajic_dir="libs/wajic"
 emscripten_system="libs/emscripten/system"
 
