@@ -54,18 +54,24 @@ else()
 
   include (ExternalProject)
   ExternalProject_Add(glfw
-	  GIT_REPOSITORY https://github.com/glfw/glfw.git
+          GIT_REPOSITORY https://github.com/glfw/glfw.git
     GIT_TAG master
-	  CMAKE_ARGS ${CMAKE_ARGS}
-		  -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}
-		  -DCMAKE_PREFIX_PATH=${CMAKE_CURRENT_BINARY_DIR}
-		  -DGLFW_BUILD_DOCS=Off
-		  -DGLFW_BUILD_TESTS=Off
-		  -DGLFW_BUILD_EXAMPLES=Off
-	  UPDATE_COMMAND ""
+          CMAKE_ARGS ${CMAKE_ARGS}
+                  -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}
+                  -DCMAKE_PREFIX_PATH=${CMAKE_CURRENT_BINARY_DIR}
+                  -DGLFW_BUILD_DOCS=Off
+                  -DGLFW_BUILD_TESTS=Off
+                  -DGLFW_BUILD_EXAMPLES=Off
+          UPDATE_COMMAND ""
   )
   add_dependencies(${PROJECT_NAME} glfw)
   target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
   target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/lib)
   target_link_libraries(${PROJECT_NAME} PRIVATE glfw3)
 endif()
+
+if(NOT WIN32)
+  install(TARGETS ${PROJECT_NAME} DESTINATION "bin")
+else(NOT WIN32)
+  install(TARGETS ${PROJECT_NAME} DESTINATION .)
+endif(NOT WIN32)

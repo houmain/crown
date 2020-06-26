@@ -3,6 +3,8 @@
 #include "state/State.h"
 #include <cmath>
 
+#include <ctime>
+
 View::View(const State* state)
   : m_state(*state),
     m_sprites("sprites.png") {
@@ -13,9 +15,202 @@ View::View(const State* state)
   auto target = Target();
   target.bind(target_width(), target_height());
 
-  for (auto i = 0, y = 0; y < target_height() + 31; y += 32)
-    for (auto x = 0; x < target_width() + 31; x += 32)
-      draw_animation(x, y, sprites::world_tiles, i++);
+  struct Cell {
+    bool floor;
+  };
+  const auto tile_size = 32;
+  const auto cells_x = (target_width() + tile_size - 1) / tile_size;
+  const auto cells_y = (target_height() + tile_size - 1) / tile_size;
+
+  auto map = std::vector<Cell>();
+  map.resize(cells_y * cells_x);
+
+  const auto wall_at = [&](int x, int y) {
+    if (x < 0 || x >= cells_x || y < 0 || y >= cells_y)
+      return true;
+    return !map[y * cells_x + x].floor;
+  };
+
+  std::srand(std::time(nullptr));
+
+  const auto random = [](int min, int max) {
+    return (max > min ? min + (std::rand() % (max - min)) : min);
+  };
+
+  for (auto i = 0; i < 11; ++i) {
+    const auto sx = random(1, 6);
+    const auto sy = random(1, 4);
+    const auto px = random(0, cells_x - sx);
+    const auto py = random(0, cells_y - sy);
+    for (auto y = py; y < py + sy; ++y)
+      for (auto x = px; x < px + sx; ++x)
+        map[y * cells_x + x].floor = true;
+  }
+
+  const auto get_floor = [&](int x, int y) {
+    auto code = 0;
+    if (!wall_at(x - 1, y))     code |= 0b1000'0000;
+    if (!wall_at(x,     y - 1)) code |= 0b0100'0000;
+    if (!wall_at(x + 1, y))     code |= 0b0010'0000;
+    if (!wall_at(x,     y + 1)) code |= 0b0001'0000;
+    if (!wall_at(x - 1, y - 1)) code |= 0b0000'1000;
+    if (!wall_at(x + 1, y - 1)) code |= 0b0000'0100;
+    if (!wall_at(x - 1, y + 1)) code |= 0b0000'0010;
+    if (!wall_at(x + 1, y + 1)) code |= 0b0000'0001;
+
+    switch (code) {
+      case 0b1111'0000: return sprites::floor_1111_0000;
+      case 0b1111'0001: return sprites::floor_1111_0001;
+      case 0b1111'0010: return sprites::floor_1111_0010;
+      case 0b1111'0011: return sprites::floor_1111_0011;
+      case 0b1111'0100: return sprites::floor_1111_0100;
+      case 0b1111'0101: return sprites::floor_1111_0101;
+      case 0b1111'0110: return sprites::floor_1111_0110;
+      case 0b1111'0111: return sprites::floor_1111_0111;
+      case 0b1111'1000: return sprites::floor_1111_1000;
+      case 0b1111'1001: return sprites::floor_1111_1001;
+      case 0b1111'1010: return sprites::floor_1111_1010;
+      case 0b1111'1011: return sprites::floor_1111_1011;
+      case 0b1111'1100: return sprites::floor_1111_1100;
+      case 0b1111'1101: return sprites::floor_1111_1101;
+      case 0b1111'1110: return sprites::floor_1111_1110;
+    }
+
+    if ((code | 0b0111) == 0b1100'0111) return sprites::floor_1100_0xxx;
+    if ((code | 0b1011) == 0b0110'1011) return sprites::floor_0110_x0xx;
+    if ((code | 0b1101) == 0b1001'1101) return sprites::floor_1001_xx0x;
+    if ((code | 0b1110) == 0b0011'1110) return sprites::floor_0011_xxx0;
+
+    switch (code | 0b1010) {
+      case 0b0111'1010: return sprites::floor_0111_x0x0;
+      case 0b0111'1011: return sprites::floor_0111_x0x1;
+      case 0b0111'1110: return sprites::floor_0111_x1x0;
+    }
+    switch (code | 0b1100) {
+      case 0b1011'1100: return sprites::floor_1011_xx00;
+      case 0b1011'1101: return sprites::floor_1011_xx01;
+      case 0b1011'1110: return sprites::floor_1011_xx10;
+    }
+    switch (code | 0b0101) {
+      case 0b1101'0101: return sprites::floor_1101_0x0x;
+      case 0b1101'0111: return sprites::floor_1101_0x1x;
+      case 0b1101'1101: return sprites::floor_1101_1x0x;
+    }
+    switch (code | 0b0011) {
+      case 0b1110'0011: return sprites::floor_1110_00xx;
+      case 0b1110'0111: return sprites::floor_1110_01xx;
+      case 0b1110'1011: return sprites::floor_1110_10xx;
+    }
+
+    switch (code >> 4) {
+      case 0b0000: return sprites::floor_0000;
+      case 0b0001: return sprites::floor_0001;
+      case 0b0010: return sprites::floor_0010;
+      case 0b0011: return sprites::floor_0011;
+      case 0b0100: return sprites::floor_0100;
+      case 0b0101: return sprites::floor_0101;
+      case 0b0110: return sprites::floor_0110;
+      case 0b0111: return sprites::floor_0111;
+      case 0b1000: return sprites::floor_1000;
+      case 0b1001: return sprites::floor_1001;
+      case 0b1010: return sprites::floor_1010;
+      case 0b1011: return sprites::floor_1011;
+      case 0b1100: return sprites::floor_1100;
+      case 0b1101: return sprites::floor_1101;
+      case 0b1110: return sprites::floor_1110;
+      case 0b1111: return sprites::floor_1111;
+    }
+    return sprites::floor_1111;
+  };
+
+  const auto get_wall = [&](int x, int y) {
+    auto code = 0;
+    if (wall_at(x - 1, y))     code |= 0b1000'0000;
+    if (wall_at(x,     y - 1)) code |= 0b0100'0000;
+    if (wall_at(x + 1, y))     code |= 0b0010'0000;
+    if (wall_at(x,     y + 1)) code |= 0b0001'0000;
+    if (wall_at(x - 1, y - 1)) code |= 0b0000'1000;
+    if (wall_at(x + 1, y - 1)) code |= 0b0000'0100;
+    if (wall_at(x - 1, y + 1)) code |= 0b0000'0010;
+    if (wall_at(x + 1, y + 1)) code |= 0b0000'0001;
+
+    switch (code) {
+      case 0b1111'0000: return sprites::wall_1111_0000;
+      case 0b1111'0001: return sprites::wall_1111_0001;
+      case 0b1111'0010: return sprites::wall_1111_0010;
+      case 0b1111'0011: return sprites::wall_1111_0011;
+      case 0b1111'0100: return sprites::wall_1111_0100;
+      case 0b1111'0101: return sprites::wall_1111_0101;
+      case 0b1111'0110: return sprites::wall_1111_0110;
+      case 0b1111'0111: return sprites::wall_1111_0111;
+      case 0b1111'1000: return sprites::wall_1111_1000;
+      case 0b1111'1001: return sprites::wall_1111_1001;
+      case 0b1111'1010: return sprites::wall_1111_1010;
+      case 0b1111'1011: return sprites::wall_1111_1011;
+      case 0b1111'1100: return sprites::wall_1111_1100;
+      case 0b1111'1101: return sprites::wall_1111_1101;
+      case 0b1111'1110: return sprites::wall_1111_1110;
+    }
+
+    if ((code | 0b0111) == 0b1100'0111) return sprites::wall_1100_0xxx;
+    if ((code | 0b1011) == 0b0110'1011) return sprites::wall_0110_x0xx;
+    if ((code | 0b1101) == 0b1001'1101) return sprites::wall_1001_xx0x;
+    if ((code | 0b1110) == 0b0011'1110) return sprites::wall_0011_xxx0;
+
+    switch (code | 0b1010) {
+      case 0b0111'1010: return sprites::wall_0111_x0x0;
+      case 0b0111'1011: return sprites::wall_0111_x0x1;
+      case 0b0111'1110: return sprites::wall_0111_x1x0;
+    }
+    switch (code | 0b1100) {
+      case 0b1011'1100: return sprites::wall_1011_xx00;
+      case 0b1011'1101: return sprites::wall_1011_xx01;
+      case 0b1011'1110: return sprites::wall_1011_xx10;
+    }
+    switch (code | 0b0101) {
+      case 0b1101'0101: return sprites::wall_1101_0x0x;
+      case 0b1101'0111: return sprites::wall_1101_0x1x;
+      case 0b1101'1101: return sprites::wall_1101_1x0x;
+    }
+    switch (code | 0b0011) {
+      case 0b1110'0011: return sprites::wall_1110_00xx;
+      case 0b1110'0111: return sprites::wall_1110_01xx;
+      case 0b1110'1011: return sprites::wall_1110_10xx;
+    }
+
+    switch (code >> 4) {
+      case 0b0000: return sprites::wall_0000;
+      case 0b0001: return sprites::wall_0001;
+      case 0b0010: return sprites::wall_0010;
+      case 0b0011: return sprites::wall_0011;
+      case 0b0100: return sprites::wall_0100;
+      case 0b0101: return sprites::wall_0101;
+      case 0b0110: return sprites::wall_0110;
+      case 0b0111: return sprites::wall_0111;
+      case 0b1000: return sprites::wall_1000;
+      case 0b1001: return sprites::wall_1001;
+      case 0b1010: return sprites::wall_1010;
+      case 0b1011: return sprites::wall_1011;
+      case 0b1100: return sprites::wall_1100;
+      case 0b1101: return sprites::wall_1101;
+      case 0b1110: return sprites::wall_1110;
+      case 0b1111: return sprites::wall_1111;
+    }
+    return sprites::wall_1111;
+  };
+
+  for (auto y = 0; y < cells_y; ++y)
+    for (auto x = 0; x < cells_x; ++x) {
+      const auto get_sprite = [&]() {
+        if (wall_at(x, y))
+          return get_wall(x, y);
+        else
+          return get_floor(x, y);
+
+
+      };
+      draw_sprite(x * tile_size, y * tile_size, get_sprite());
+    }
   m_batch.flush();
 
   m_world = std::move(target);
