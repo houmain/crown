@@ -4,19 +4,6 @@ project(Game)
 set(CMAKE_CXX_STANDARD 17)
 
 set(SOURCES
-    src/platform/platform_glfw.cpp
-    src/main.cpp
-    src/Game.cpp
-    src/music.cpp
-    src/state/State.cpp
-    src/view/View.cpp
-    src/framework/ImageFile.cpp
-    src/framework/Target.cpp
-    src/framework/ShaderProgram.cpp
-    src/framework/SpriteAtlas.cpp
-    src/framework/SpriteBatch.cpp
-    src/framework/Texture.cpp
-    src/framework/get_resource.cpp
     libs/nanovg/nanovg.c
     libs/choreograph/Cue.cpp
     libs/choreograph/Timeline.cpp
@@ -26,6 +13,20 @@ set(SOURCES
     libs/libxm/src/play.c
     libs/libxm/src/xm.c
     resources/resources.inc
+    src/platform/platform_glfw.cpp
+    src/framework/ImageFile.cpp
+    src/framework/Target.cpp
+    src/framework/ShaderProgram.cpp
+    src/framework/SpriteAtlas.cpp
+    src/framework/SpriteBatch.cpp
+    src/framework/Texture.cpp
+    src/framework/get_resource.cpp
+    src/Actor.cpp
+    src/Game.cpp
+    src/Graphics.cpp
+    src/main.cpp
+    src/Object.cpp
+    src/World.cpp
 )
 
 if(WIN32)
@@ -46,7 +47,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 if(NOT WIN32)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -no-pie -fno-rtti -fno-exceptions")
   target_link_libraries(${PROJECT_NAME} GL glfw dl pthread)
 else()
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)

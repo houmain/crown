@@ -1,0 +1,19 @@
+
+// automatically generated with spright
+// https://github.com/houmaster/spright
+
+namespace tiles {
+
+struct Tile {
+  int x, y;
+};
+
+{% for tag in tags %}
+struct {{ tag.value }} {
+{% for sprite in tag.sprites %}
+  static constexpr Tile tile_{{ sprite.id }} { {{ sprite.trimmedRect.x }}, {{ sprite.trimmedRect.y }} };
+{% endfor %}
+};
+
+{% endfor %}
+} // namespace

@@ -42,7 +42,7 @@ namespace {
       if (glfwGetWindowAttrib(g_window, GLFW_MAXIMIZED))
         set_fullscreen(false);
 
-    platform_on_key(key, (action != GLFW_RELEASE));
+    platform_on_key(static_cast<KeyCode>(key), (action != GLFW_RELEASE));
   }
 
   void text_callback(GLFWwindow*, unsigned int code) {

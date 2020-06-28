@@ -1,16 +1,33 @@
 #pragma once
 
-#include "state/State.h"
-#include "view/View.h"
+#include "choreograph/Choreograph.h"
+#include "Graphics.h"
+#include "World.h"
+#include "Actor.h"
 
-class Game {
+class Game : public Graphics {
 public:
+  Game();
+
+  double update_interval() const { return 1 / 5.0; }
+
   void update(double time);
+  void draw();
+
+  Actor& get_player() { return m_player; }
 
 private:
-  State m_state;
-  View m_view{ &m_state };
+  void do_update();
 
-  double m_previous_time{ };
+  // state
+  choreograph::Timeline m_update_timeline;
   double m_update_time{ };
+  double m_previous_time{ };
+  World m_world;
+  std::vector<Object> m_objects;
+  Actor m_player;
+
+  // view
+  choreograph::Timeline m_draw_timeline;
+  Texture m_world_texture;
 };

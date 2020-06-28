@@ -34,11 +34,12 @@ clang \
   src/framework/SpriteAtlas.cpp \
   src/framework/SpriteBatch.cpp \
   src/framework/Texture.cpp \
-  src/main.cpp \
+  src/Actor.cpp \
   src/Game.cpp \
-  src/music.cpp \
-  src/state/State.cpp \
-  src/view/View.cpp \
+  src/Graphics.cpp \
+  src/main.cpp \
+  src/Object.cpp \
+  src/World.cpp \
   -o "${out_dir}/${project}.wasm"
 
 # generate webpage (HTML only when it does not exist)

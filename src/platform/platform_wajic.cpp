@@ -23,13 +23,24 @@ WAJIC(void, WASetupInput, (), {
   const cancelEvent = function(e) { if (e.preventDefault) e.preventDefault(true); else if (e.stopPropagation) e.stopPropagation(true); else e.stopped = true; };
   const windowEvent = function(t, f) { window.addEventListener(t, f, true); };
   const canvasEvent = function(t, f) { canvas.addEventListener(t, f, { capture:true, passive:false }); };
+  const getKeyCode = function(key) {
+    if (key.length == 1)
+      return key.toUpperCase().charCodeAt();
+    switch (key) {
+      case 'ArrowRight': return 262;
+      case 'ArrowLeft': return 263;
+      case 'Arrowdown': return 264;
+      case 'ArrowUp': return 265;
+    }
+    return 0;
+  };
   windowEvent('keydown', function(e) {
-    ASM.WAFNKey(true, e.keyCode);
+    ASM.WAFNKey(true, getKeyCode(e.key));
     if (e.key.length == 1) ASM.WAFNText(e.key.charCodeAt());
     cancelEvent(e);
   });
   windowEvent('keyup', function(e) {
-    ASM.WAFNKey(false, e.keyCode);
+    ASM.WAFNKey(false, getKeyCode(e.key));
     cancelEvent(e);
   });
   canvasEvent('mousemove', function(e) {
@@ -93,7 +104,7 @@ WA_EXPORT(WAFNDraw) void WAFNDraw(int width, int height, int t) {
 }
 
 WA_EXPORT(WAFNKey) void WAFNKey(int is_down, int key_code) {
-  platform_on_key(key_code, static_cast<bool>(is_down));
+  platform_on_key(static_cast<KeyCode>(key_code), static_cast<bool>(is_down));
 }
 
 WA_EXPORT(WAFNText) void WAFNText(unsigned int code) {
