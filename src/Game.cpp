@@ -1,13 +1,18 @@
 
 #include "Game.h"
 
+Game* game;
+
 Game::Game()
-  : m_player(&m_objects.emplace_back()) {
+  : m_player((m_objects.emplace_back(ObjectType::player, 380, 90), &m_objects.back())) {
+
+  glEnable(GL_BLEND);
+  glBlendEquation(GL_FUNC_ADD);
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
   const auto cells_x = target_width() / tile_size;
   const auto cells_y = target_height() / tile_size;
-  m_world.generate(cells_x, cells_y, 5);
-  m_world_texture = m_world.generate_texture(*this);
+  generate_world(cells_x, cells_y, 5);
 }
 
 void Game::update(double time) {
@@ -23,22 +28,45 @@ void Game::update(double time) {
 
 void Game::do_update() {
   m_update_timeline.step(update_interval());
+
+  m_player.update();
+
+  for (auto& object : m_objects)
+    if (object) {
+      object.update();
+    }
 }
 
 void Game::draw() {
   m_draw_timeline.jumpTo(m_update_timeline.time() + m_update_time * update_interval());
-  const auto time = m_draw_timeline.time();
+  const auto frame_pos = static_cast<float>(m_update_time);
 
-  draw_texture(0, 0, m_world_texture, 0, 0,
-    m_world_texture.width(), m_world_texture.height(), 1, 1, false, true);
-  flush_drawing();
+  draw_world();
 
   glEnable(GL_BLEND);
   glBlendEquation(GL_FUNC_ADD);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-  draw_animation(300, 200, sprites::king_pig_idle, 6 * static_cast<float>(time));
-  draw_animation(100 + std::fmod(time, 6) * 70, target_height(), sprites::player_run,
-    13 * static_cast<float>(time));
+  draw_animation(32 * 3.5f, 32 * 8, sprites::king_pig_idle,
+    6 * static_cast<float>(m_draw_timeline.time()));
+
+  static float frame = 0;
+  frame += m_player.object().velocity_x() * TWEAKABLE(0.15);
+
+  if (m_player.object().velocity_x()) {
+    draw_animation(
+      m_player.object().get_x_at(frame_pos),
+      m_player.object().get_y_at(frame_pos),
+      sprites::player_run, frame,
+      m_player.looking_left());
+  }
+  else {
+    draw_animation(
+      m_player.object().get_x_at(frame_pos),
+      m_player.object().get_y_at(frame_pos),
+      sprites::player_idle, m_draw_timeline.time() * 6,
+      m_player.looking_left());
+  }
+
   flush_drawing();
 }

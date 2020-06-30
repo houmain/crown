@@ -3,7 +3,51 @@
 #include <random>
 #include <algorithm>
 
-void World::generate(int cells_x, int cells_y, int seed) {
+float World::distance_to_ground(float x, float y) const {
+  const auto cell_x = floor(x / tile_size);
+  auto cell_y = floor(y / tile_size) + 1;
+  auto distance = (cell_y * tile_size) - y;
+  while (cell_at(cell_x, cell_y).type == CellType::floor) {
+    distance += tile_size;
+    ++cell_y;
+  }
+  return distance;
+}
+
+float World::distance_to_ceiling(float x, float y) const {
+  const auto cell_x = floor(x / tile_size);
+  auto cell_y = floor(y / tile_size);
+  auto distance = y - (cell_y * tile_size);
+  while (cell_at(cell_x, cell_y - 1).type != CellType::wall) {
+    distance += tile_size;
+    --cell_y;
+  }
+  return distance;
+}
+
+float World::distance_to_wall_left(float x, float y) const {
+  const auto cell_y = floor(y / tile_size);
+  auto cell_x = floor(x / tile_size);
+  auto distance = x - (cell_x * tile_size);
+  while (cell_at(cell_x - 1, cell_y).type != CellType::wall) {
+    distance += tile_size;
+    --cell_x;
+  }
+  return distance;
+}
+
+float World::distance_to_wall_right(float x, float y) const {
+  const auto cell_y = floor(y / tile_size);
+  auto cell_x = floor(x / tile_size) + 1;
+  auto distance = (cell_x * tile_size) - x;
+  while (cell_at(cell_x, cell_y).type != CellType::wall) {
+    distance += tile_size;
+    ++cell_x;
+  }
+  return distance;
+}
+
+void World::generate_world(int cells_x, int cells_y, int seed) {
   m_cells_x = cells_x;
   m_cells_y = cells_y;
   m_cells.resize(m_cells_y * m_cells_x);
@@ -19,6 +63,7 @@ void World::generate(int cells_x, int cells_y, int seed) {
   };
 
   for (auto i = 0; i < 11; ++i) {
+    // generate rooms
     const auto sx = random(1, 6);
     const auto sy = random(1, 4);
     const auto px = random(0, m_cells_x - sx);
@@ -26,11 +71,22 @@ void World::generate(int cells_x, int cells_y, int seed) {
     for (auto y = py; y < py + sy; ++y)
       for (auto x = px; x < px + sx; ++x)
         m_cells[y * m_cells_x + x].type = CellType::floor;
+
+    // generate some platforms
+    for (auto j = 0; j < 1; ++j) {
+      const auto sx2 = random(1, sx);
+      const auto px2 = px + random(0, sx - sx2);
+      const auto py2 = py + random(0, sy);
+      for (auto x = px2; x < px2 + sx2; ++x)
+        m_cells[py2 * m_cells_x + x].type = (i % 2 ?
+          CellType::platform_2 : CellType::platform_1);
+    }
   }
+
+  generate_world_texture();
 }
 
-Texture World::generate_texture(Graphics& graphics) const {
-
+void World::generate_world_texture() {
   const auto get_tile = [&](auto tileset, auto check_proximity, int x, int y) {
     using Tileset = decltype(tileset);
 
@@ -119,16 +175,27 @@ Texture World::generate_texture(Graphics& graphics) const {
   auto target = Target();
   target.bind(target_width(), target_height());
 
-  const auto tile_size = graphics.tile_size;
   const auto cells_x = (target_width() + tile_size - 1) / tile_size;
   const auto cells_y = (target_height() + tile_size - 1) / tile_size;
   for (auto y = 0; y < cells_y; ++y)
-    for (auto x = 0; x < cells_x; ++x)
-      graphics.draw_tile(x * tile_size, y * tile_size,
-        wall_at(x, y) ?
-          get_tile(tiles::Wall(), wall_at, x, y) :
-          get_tile(tiles::Floor(), no_wall_at, x, y));
-  graphics.flush_drawing();
+    for (auto x = 0; x < cells_x; ++x) {
+      const auto type = cell_at(x, y).type;
+      draw_tile(x, y, type == CellType::wall ?
+        get_tile(tiles::Wall(), wall_at, x, y) :
+        get_tile(tiles::Floor(), no_wall_at, x, y));
 
-  return std::move(target);
+      if (type == CellType::platform_1)
+        draw_sprite(x * tile_size, y * tile_size, sprites::platform_1_sole);
+      else if (type == CellType::platform_2)
+        draw_sprite(x * tile_size, y * tile_size, sprites::platform_2_sole);
+    }
+  flush_drawing();
+
+  m_world_texture = std::move(target);
+}
+
+void World::draw_world() {
+  draw_texture(0, 0, m_world_texture, 0, 0,
+    m_world_texture.width(), m_world_texture.height(), 1, 1, false, true);
+  flush_drawing();
 }

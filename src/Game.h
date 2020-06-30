@@ -5,11 +5,13 @@
 #include "World.h"
 #include "Actor.h"
 
-class Game : public Graphics {
+extern class Game* game;
+
+class Game : public World {
 public:
   Game();
 
-  double update_interval() const { return 1 / 5.0; }
+  double update_interval() const { return 1 / 60.0; }
 
   void update(double time);
   void draw();
@@ -23,11 +25,9 @@ private:
   choreograph::Timeline m_update_timeline;
   double m_update_time{ };
   double m_previous_time{ };
-  World m_world;
   std::vector<Object> m_objects;
   Actor m_player;
 
   // view
   choreograph::Timeline m_draw_timeline;
-  Texture m_world_texture;
 };

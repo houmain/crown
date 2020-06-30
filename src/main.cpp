@@ -49,7 +49,6 @@ const int platform_initial_height = native_height * 2;
 namespace {
   Target target;
   SpriteBatch batch;
-  std::unique_ptr<Game> game;
 } // namespace
 
 void platform_on_setup() {
@@ -61,7 +60,7 @@ void platform_on_setup() {
     static_cast<int>(font.second), 0);
 
   bind_default_target(native_width, native_height);
-  game = std::make_unique<Game>();
+  game = new Game();
 }
 
 void platform_music_callback(float* output_frames, int frame_count) {
@@ -79,8 +78,9 @@ void platform_music_callback(float* output_frames, int frame_count) {
 void platform_on_key(KeyCode key, bool down) {
   auto& player = game->get_player();
   switch (key) {
+    case KeyCode::ArrowUp:
     case KeyCode::KeyX: player.apply_input(ActorInput::jump, down); break;
-    case KeyCode::KeyC: player.apply_input(ActorInput::fire, down); break;
+    case KeyCode::KeyC: player.apply_input(ActorInput::attack, down); break;
     case KeyCode::ArrowLeft: player.apply_input(ActorInput::move_left, down); break;
     case KeyCode::ArrowRight: player.apply_input(ActorInput::move_right, down); break;
     default: break;
