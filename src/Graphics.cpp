@@ -2,8 +2,24 @@
 #include "Graphics.h"
 
 Graphics::Graphics() :
-    m_sprites("sprites.png"),
-    m_tiles("tiles.png") {
+    m_sprites("sprites.png") {
+  glDisable(GL_BLEND);
+  glBlendEquation(GL_FUNC_ADD);
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void Graphics::enable_blending() {
+  if (!std::exchange(m_blending, true)) {
+    flush_drawing();
+    glEnable(GL_BLEND);
+  }
+}
+
+void Graphics::disable_blending() {
+  if (std::exchange(m_blending, false)) {
+    flush_drawing();
+    glDisable(GL_BLEND);
+  }
 }
 
 void Graphics::draw_texture(float x, float y, const Texture& texture,
@@ -13,13 +29,10 @@ void Graphics::draw_texture(float x, float y, const Texture& texture,
 }
 
 void Graphics::draw_sprite(float x, float y, const sprites::Sprite& sprite, bool flip_x) {
-  m_batch.draw(x - sprite.pivot_x, y - sprite.pivot_y, m_sprites,
+  m_batch.draw(
+    (!flip_x ? x - sprite.pivot_x : x - sprite.w + sprite.pivot_x),
+    y - sprite.pivot_y, m_sprites,
     sprite.x, sprite.y, sprite.w, sprite.h, 1, 1, flip_x);
-}
-
-void Graphics::draw_tile(int x, int y, const tiles::Tile& tile) {
-  m_batch.draw(x * tile_size, y * tile_size,
-    m_tiles, tile.x, tile.y, tile_size, tile_size);
 }
 
 void Graphics::flush_drawing() {

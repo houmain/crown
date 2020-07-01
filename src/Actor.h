@@ -11,15 +11,16 @@ enum class ActorInput {
 
 class Actor {
 public:
-  explicit Actor(Object* object);
-
   void apply_input(ActorInput input, bool down);
-  void update();
-  Object& object() { return m_object; }
   bool looking_left() const { return m_looking_left; }
+  Object& get_object();
+
+protected:
+  explicit Actor(ObjectType object_type);
+  void update();
 
 private:
-  Object& m_object;
+  const Handle m_object_handle;
   int m_input{ };
   bool m_looking_left{ };
 };

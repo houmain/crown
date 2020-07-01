@@ -60,7 +60,7 @@ void platform_on_setup() {
     static_cast<int>(font.second), 0);
 
   bind_default_target(native_width, native_height);
-  game = new Game();
+  Game::instantiate();
 }
 
 void platform_music_callback(float* output_frames, int frame_count) {
@@ -76,7 +76,7 @@ void platform_music_callback(float* output_frames, int frame_count) {
 }
 
 void platform_on_key(KeyCode key, bool down) {
-  auto& player = game->get_player();
+  auto& player = game->player();
   switch (key) {
     case KeyCode::ArrowUp:
     case KeyCode::KeyX: player.apply_input(ActorInput::jump, down); break;
@@ -100,7 +100,6 @@ void platform_on_mouse_wheel(double dx, double dy) {
 }
 
 void platform_on_update(int window_width, int window_height, double time) {
-  glDisable(GL_BLEND);
 
 #if defined(__WAJIC__)
   bind_default_target(window_width, window_height);

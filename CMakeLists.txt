@@ -22,6 +22,8 @@ set(SOURCES
     src/framework/Texture.cpp
     src/framework/get_resource.cpp
     src/Actor.cpp
+    src/Player.cpp
+    src/Pig.cpp
     src/Game.cpp
     src/Graphics.cpp
     src/main.cpp

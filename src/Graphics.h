@@ -4,16 +4,14 @@
 #include "framework/SpriteBatch.h"
 #include "framework/Target.h"
 #include "resources/sprites.h"
-#include "resources/tiles.h"
-#include "tweakable.h"
 #include "NanoVG.h"
 
 class Graphics {
 public:
-  static constexpr int tile_size = 32;
-
-protected:
   Graphics();
+
+  void enable_blending();
+  void disable_blending();
 
   void draw_texture(float x, float y, const Texture& texture,
       int sx, int sy, int w, int h, float alpha = 1.0f,
@@ -28,12 +26,10 @@ protected:
     draw_sprite(x, y, *frames[number], flip_x);
   }
 
-  void draw_tile(int x, int y, const tiles::Tile& tile);
-
   void flush_drawing();
 
 private:
-  Texture m_sprites;
-  Texture m_tiles;
+  const Texture m_sprites;
   SpriteBatch m_batch{ 100 };
+  bool m_blending{ };
 };

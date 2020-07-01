@@ -1,53 +1,15 @@
 
 #include "World.h"
+#include "Graphics.h"
+#include "resources/tiles.h"
 #include <random>
 #include <algorithm>
 
-float World::distance_to_ground(float x, float y) const {
-  const auto cell_x = floor(x / tile_size);
-  auto cell_y = floor(y / tile_size) + 1;
-  auto distance = (cell_y * tile_size) - y;
-  while (cell_at(cell_x, cell_y).type == CellType::floor) {
-    distance += tile_size;
-    ++cell_y;
-  }
-  return distance;
+World::World()
+  : m_tiles("tiles.png") {
 }
 
-float World::distance_to_ceiling(float x, float y) const {
-  const auto cell_x = floor(x / tile_size);
-  auto cell_y = floor(y / tile_size);
-  auto distance = y - (cell_y * tile_size);
-  while (cell_at(cell_x, cell_y - 1).type != CellType::wall) {
-    distance += tile_size;
-    --cell_y;
-  }
-  return distance;
-}
-
-float World::distance_to_wall_left(float x, float y) const {
-  const auto cell_y = floor(y / tile_size);
-  auto cell_x = floor(x / tile_size);
-  auto distance = x - (cell_x * tile_size);
-  while (cell_at(cell_x - 1, cell_y).type != CellType::wall) {
-    distance += tile_size;
-    --cell_x;
-  }
-  return distance;
-}
-
-float World::distance_to_wall_right(float x, float y) const {
-  const auto cell_y = floor(y / tile_size);
-  auto cell_x = floor(x / tile_size) + 1;
-  auto distance = (cell_x * tile_size) - x;
-  while (cell_at(cell_x, cell_y).type != CellType::wall) {
-    distance += tile_size;
-    ++cell_x;
-  }
-  return distance;
-}
-
-void World::generate_world(int cells_x, int cells_y, int seed) {
+void World::generate(int cells_x, int cells_y, int seed) {
   m_cells_x = cells_x;
   m_cells_y = cells_y;
   m_cells.resize(m_cells_y * m_cells_x);
@@ -82,11 +44,9 @@ void World::generate_world(int cells_x, int cells_y, int seed) {
           CellType::platform_2 : CellType::platform_1);
     }
   }
-
-  generate_world_texture();
 }
 
-void World::generate_world_texture() {
+void World::generate_texture(Graphics& graphics, int width, int height) {
   const auto get_tile = [&](auto tileset, auto check_proximity, int x, int y) {
     using Tileset = decltype(tileset);
 
@@ -173,29 +133,85 @@ void World::generate_world_texture() {
   };
 
   auto target = Target();
-  target.bind(target_width(), target_height());
+  target.bind(width, height);
 
-  const auto cells_x = (target_width() + tile_size - 1) / tile_size;
-  const auto cells_y = (target_height() + tile_size - 1) / tile_size;
+  const auto draw_tile = [&](int x, int y, const tiles::Tile& tile) {
+    graphics.draw_texture(x * tile_size, y * tile_size,
+      m_tiles, tile.x, tile.y, tile_size, tile_size);
+  };
+
+  const auto cells_x = (width + tile_size - 1) / tile_size;
+  const auto cells_y = (height + tile_size - 1) / tile_size;
+
+  graphics.disable_blending();
   for (auto y = 0; y < cells_y; ++y)
     for (auto x = 0; x < cells_x; ++x) {
       const auto type = cell_at(x, y).type;
       draw_tile(x, y, type == CellType::wall ?
         get_tile(tiles::Wall(), wall_at, x, y) :
         get_tile(tiles::Floor(), no_wall_at, x, y));
-
-      if (type == CellType::platform_1)
-        draw_sprite(x * tile_size, y * tile_size, sprites::platform_1_sole);
-      else if (type == CellType::platform_2)
-        draw_sprite(x * tile_size, y * tile_size, sprites::platform_2_sole);
     }
-  flush_drawing();
+
+  graphics.enable_blending();
+  for (auto y = 0; y < cells_y; ++y)
+    for (auto x = 0; x < cells_x; ++x) {
+      const auto type = cell_at(x, y).type;
+      if (type == CellType::platform_1)
+        graphics.draw_sprite(x * tile_size, y * tile_size, sprites::platform_1_sole);
+      else if (type == CellType::platform_2)
+        graphics.draw_sprite(x * tile_size, y * tile_size, sprites::platform_2_sole);
+    }
+  graphics.flush_drawing();
 
   m_world_texture = std::move(target);
 }
 
-void World::draw_world() {
-  draw_texture(0, 0, m_world_texture, 0, 0,
+void World::draw(Graphics& graphics) {
+  graphics.draw_texture(0, 0, m_world_texture, 0, 0,
     m_world_texture.width(), m_world_texture.height(), 1, 1, false, true);
-  flush_drawing();
 }
+
+float World::distance_to_ground(float x, float y) const {
+  const auto cell_x = floor(x / tile_size);
+  auto cell_y = floor(y / tile_size) + 1;
+  auto distance = (cell_y * tile_size) - y;
+  while (cell_at(cell_x, cell_y).type == CellType::floor) {
+    distance += tile_size;
+    ++cell_y;
+  }
+  return distance;
+}
+
+float World::distance_to_ceiling(float x, float y) const {
+  const auto cell_x = floor(x / tile_size);
+  auto cell_y = floor(y / tile_size);
+  auto distance = y - (cell_y * tile_size);
+  while (cell_at(cell_x, cell_y - 1).type != CellType::wall) {
+    distance += tile_size;
+    --cell_y;
+  }
+  return distance;
+}
+
+float World::distance_to_wall_left(float x, float y) const {
+  const auto cell_y = floor(y / tile_size);
+  auto cell_x = floor(x / tile_size);
+  auto distance = x - (cell_x * tile_size);
+  while (cell_at(cell_x - 1, cell_y).type != CellType::wall) {
+    distance += tile_size;
+    --cell_x;
+  }
+  return distance;
+}
+
+float World::distance_to_wall_right(float x, float y) const {
+  const auto cell_y = floor(y / tile_size);
+  auto cell_x = floor(x / tile_size) + 1;
+  auto distance = (cell_x * tile_size) - x;
+  while (cell_at(cell_x, cell_y).type != CellType::wall) {
+    distance += tile_size;
+    ++cell_x;
+  }
+  return distance;
+}
+

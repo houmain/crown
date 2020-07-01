@@ -1,22 +1,23 @@
 #pragma once
 
+#include <cstdint>
 #include "tweakable.h"
 
+using Handle = uint8_t;
+class World;
+
 enum class ObjectType {
-  none,
   player,
-  pig_king,
   pig,
 };
 
 class Object {
 public:
-  Object(ObjectType type, float x, float y);
+  explicit Object(ObjectType type);
 
-  explicit operator bool() const { return m_type != ObjectType::none; }
-
+  void set_position(float x, float y);
   void set_size(float width, float height);
-  void update();
+  void update(const World& world);
   void apply_force(float x, float y);
 
   float x() const { return m_x; }

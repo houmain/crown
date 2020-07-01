@@ -3,16 +3,28 @@
 
 Game* game;
 
-Game::Game()
-  : m_player((m_objects.emplace_back(ObjectType::player, 380, 90), &m_objects.back())) {
+void Game::instantiate() {
+  // first allocate and set pointer to instance before constructing
+  game = static_cast<Game*>(::operator new(sizeof(Game)));
+  new (game) Game();
+}
 
-  glEnable(GL_BLEND);
-  glBlendEquation(GL_FUNC_ADD);
-  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+Game::Game() {
+  const auto cells_x = target_width() / m_world.tile_size;
+  const auto cells_y = target_height() / m_world.tile_size;
+  m_world.generate(cells_x, cells_y, 5);
+  m_world.generate_texture(m_graphics, target_width(), target_height());
 
-  const auto cells_x = target_width() / tile_size;
-  const auto cells_y = target_height() / tile_size;
-  generate_world(cells_x, cells_y, 5);
+  m_player.get_object().set_position(380, 90);
+
+  auto pig = m_pigs.emplace();
+  m_pigs[pig].get_object().set_position(300, 80);
+
+  pig = m_pigs.emplace();
+  m_pigs[pig].get_object().set_position(270, 90);
+
+  pig = m_pigs.emplace();
+  m_pigs[pig].get_object().set_position(240, 20);
 }
 
 void Game::update(double time) {
@@ -31,42 +43,29 @@ void Game::do_update() {
 
   m_player.update();
 
+  for (auto& pig : m_pigs)
+    pig.update();
+
   for (auto& object : m_objects)
-    if (object) {
-      object.update();
-    }
+    object.update(m_world);
+}
+
+Handle Game::allocate_object(ObjectType object_type) {
+  return m_objects.emplace(object_type);
 }
 
 void Game::draw() {
   m_draw_timeline.jumpTo(m_update_timeline.time() + m_update_time * update_interval());
   const auto frame_pos = static_cast<float>(m_update_time);
 
-  draw_world();
+  m_graphics.disable_blending();
+  m_world.draw(m_graphics);
 
-  glEnable(GL_BLEND);
-  glBlendEquation(GL_FUNC_ADD);
-  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+  m_graphics.enable_blending();
+  for (auto& pig : m_pigs)
+    pig.draw(m_graphics, frame_pos);
 
-  draw_animation(32 * 3.5f, 32 * 8, sprites::king_pig_idle,
-    6 * static_cast<float>(m_draw_timeline.time()));
+  m_player.draw(m_graphics, frame_pos);
 
-  static float frame = 0;
-  frame += m_player.object().velocity_x() * TWEAKABLE(0.15);
-
-  if (m_player.object().velocity_x()) {
-    draw_animation(
-      m_player.object().get_x_at(frame_pos),
-      m_player.object().get_y_at(frame_pos),
-      sprites::player_run, frame,
-      m_player.looking_left());
-  }
-  else {
-    draw_animation(
-      m_player.object().get_x_at(frame_pos),
-      m_player.object().get_y_at(frame_pos),
-      sprites::player_idle, m_draw_timeline.time() * 6,
-      m_player.looking_left());
-  }
-
-  flush_drawing();
+  m_graphics.disable_blending();
 }
