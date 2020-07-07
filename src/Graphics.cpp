@@ -22,13 +22,13 @@ void Graphics::disable_blending() {
   }
 }
 
-void Graphics::draw_texture(float x, float y, const Texture& texture,
+void Graphics::draw(float x, float y, const Texture& texture,
     int sx, int sy, int w, int h, float alpha,
     float scale, bool flip_x, bool flip_y) {
   m_batch.draw(x, y, texture, sx, sy, w, h, alpha, scale, flip_x, flip_y);
 }
 
-void Graphics::draw_sprite(float x, float y, const sprites::Sprite& sprite, bool flip_x) {
+void Graphics::draw(float x, float y, const sprites::Sprite& sprite, bool flip_x) {
   m_batch.draw(
     (!flip_x ? x - sprite.pivot_x : x - sprite.w + sprite.pivot_x),
     y - sprite.pivot_y, m_sprites,

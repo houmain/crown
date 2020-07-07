@@ -136,7 +136,7 @@ void World::generate_texture(Graphics& graphics, int width, int height) {
   target.bind(width, height);
 
   const auto draw_tile = [&](int x, int y, const tiles::Tile& tile) {
-    graphics.draw_texture(x * tile_size, y * tile_size,
+    graphics.draw(x * tile_size, y * tile_size,
       m_tiles, tile.x, tile.y, tile_size, tile_size);
   };
 
@@ -156,10 +156,23 @@ void World::generate_texture(Graphics& graphics, int width, int height) {
   for (auto y = 0; y < cells_y; ++y)
     for (auto x = 0; x < cells_x; ++x) {
       const auto type = cell_at(x, y).type;
-      if (type == CellType::platform_1)
-        graphics.draw_sprite(x * tile_size, y * tile_size, sprites::platform_1_sole);
-      else if (type == CellType::platform_2)
-        graphics.draw_sprite(x * tile_size, y * tile_size, sprites::platform_2_sole);
+      if (type == CellType::platform_1 || type == CellType::platform_2) {
+        const auto get_platform_sprite = [&]() {
+          const auto left = (cell_at(x - 1, y).type == type);
+          const auto right = (cell_at(x + 1, y).type == type);
+          if (type == CellType::platform_1) {
+            if (left && right) return sprites::platform_1_middle;
+            if (left) return sprites::platform_1_right;
+            if (right) return sprites::platform_1_left;
+            return sprites::platform_1_sole;
+          }
+          if (left && right) return sprites::platform_2_middle;
+          if (left) return sprites::platform_2_right;
+          if (right) return sprites::platform_2_left;
+          return sprites::platform_2_sole;
+        };
+        graphics.draw(x * tile_size, y * tile_size, get_platform_sprite());
+      }
     }
   graphics.flush_drawing();
 
@@ -167,7 +180,7 @@ void World::generate_texture(Graphics& graphics, int width, int height) {
 }
 
 void World::draw(Graphics& graphics) {
-  graphics.draw_texture(0, 0, m_world_texture, 0, 0,
+  graphics.draw(0, 0, m_world_texture, 0, 0,
     m_world_texture.width(), m_world_texture.height(), 1, 1, false, true);
 }
 

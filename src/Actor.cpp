@@ -1,13 +1,10 @@
 
 #include "Actor.h"
-#include "Game.h"
+#include "Object.h"
+#include <cmath>
 
-Actor::Actor(ObjectType object_type)
-  : m_object_handle(game->allocate_object(object_type)) {
-}
-
-Object& Actor::get_object() {
-  return game->get_object(m_object_handle);
+Actor::Actor(EntityType entity_type)
+  : Entity(entity_type) {
 }
 
 void Actor::apply_input(ActorInput input, bool down) {
@@ -18,10 +15,10 @@ void Actor::apply_input(ActorInput input, bool down) {
 }
 
 void Actor::update() {
-  const auto run_acceleration = TWEAKABLE(0.4);
+  const auto run_acceleration = TWEAKABLE(0.25);
   const auto fly_acceleration = TWEAKABLE(0.05);
-  const auto jump_acceleration = TWEAKABLE(3.0);
-  const auto run_jump_acceleration = TWEAKABLE(0.3);
+  const auto jump_acceleration = TWEAKABLE(4.0);
+  const auto run_jump_acceleration = TWEAKABLE(0.4);
 
   auto& object = get_object();
   if (m_input & static_cast<int>(ActorInput::move_left)) {

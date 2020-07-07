@@ -6,8 +6,12 @@ class Graphics;
 
 class Pig : public Actor {
 public:
-  explicit Pig();
+  Pig();
 
   void update();
   void draw(Graphics& graphics, float frame_pos);
+
+protected:
+  Pig(EntityType entity_type);
+
 };
