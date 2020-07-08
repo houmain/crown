@@ -6,7 +6,7 @@ PigKing::PigKing()
   : Pig(EntityType::pig_king) {
 }
 
-void PigKing::draw(Graphics& graphics, float frame_pos) {
+void PigKing::draw(Graphics& graphics, float frame_pos) const {
   static float frame = 0;
   frame += TWEAKABLE(0.05);
 

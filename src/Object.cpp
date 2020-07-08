@@ -46,22 +46,19 @@ void Object::update(const World& world) {
 
   // integration and collision with world
   const auto epsilon = 0.001f;
-  const auto left = m_x - m_width / 2;
-  const auto right = m_x + m_width / 2;
-  const auto top = m_y - m_height;
-  const auto bottom = m_y;
+  const auto half_width = m_width / 2;
 
   const auto distance_to_wall_left = std::min(
-    world.distance_to_wall_left(left, bottom),
-    world.distance_to_wall_left(left, top));
+    world.distance_to_wall_left(m_x - half_width, m_y),
+    world.distance_to_wall_left(m_x - half_width, m_y - m_height));
   if (distance_to_wall_left < -m_velocity_x + epsilon) {
     m_x -= distance_to_wall_left - epsilon;
     m_velocity_x = 0;
   }
   else {
     const auto distance_to_wall_right = std::min(
-      world.distance_to_wall_right(right, bottom),
-      world.distance_to_wall_right(right, top));
+      world.distance_to_wall_right(m_x + half_width, m_y),
+      world.distance_to_wall_right(m_x + half_width, m_y - m_height));
     if (distance_to_wall_right < m_velocity_x - epsilon) {
       m_x += distance_to_wall_right - epsilon;
       m_velocity_x = 0;
@@ -72,8 +69,8 @@ void Object::update(const World& world) {
   }
 
   const auto distance_to_ground = std::min(
-    world.distance_to_ground(left, bottom),
-    world.distance_to_ground(right, bottom));
+    world.distance_to_ground(m_x - half_width, m_y),
+    world.distance_to_ground(m_x + half_width, m_y));
   if (distance_to_ground < m_velocity_y + epsilon) {
     m_y += distance_to_ground - epsilon;
 
@@ -87,8 +84,8 @@ void Object::update(const World& world) {
     m_on_ground = false;
 
     const auto distance_to_ceiling = std::min(
-      world.distance_to_ceiling(left, top),
-      world.distance_to_ceiling(right, top));
+      world.distance_to_ceiling(m_x - half_width, m_y - m_height),
+      world.distance_to_ceiling(m_x + half_width, m_y - m_height));
 
     if (distance_to_ceiling < -m_velocity_y - epsilon) {
       m_y -= distance_to_ceiling - epsilon;
@@ -109,6 +106,9 @@ bool Object::overlaps(const Object& other) const {
 
 void Object::interact(Object &other) {
   if (overlaps(other)) {
-    // TODO
+    auto& entity = get_entity();
+    auto& other_entity = other.get_entity();
+    entity.on_interaction(other_entity);
+    other_entity.on_interaction(entity);
   }
 }

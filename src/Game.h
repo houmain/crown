@@ -15,7 +15,7 @@ class Game {
 public:
   static void instantiate();
 
-  double update_interval() const { return 1 / 60.0; }
+  double update_interval() const { return 1 / TWEAKABLE(60.0); }
 
   void update(double time);
   void draw();

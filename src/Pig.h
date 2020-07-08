@@ -9,7 +9,7 @@ public:
   Pig();
 
   void update();
-  void draw(Graphics& graphics, float frame_pos);
+  void draw(Graphics& graphics, float frame_pos) const;
 
 protected:
   Pig(EntityType entity_type);

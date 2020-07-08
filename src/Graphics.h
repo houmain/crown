@@ -14,12 +14,22 @@ public:
   }
 
   const sprites::Sprite& get_frame(float position) const {
+    if (m_backwards) {
+      position = m_count - 1 - position;
+    }
+    if (m_clamping) {
+      position = std::min(std::max(position, 0.0f), static_cast<float>(m_count - 1));
+    }
     return *m_frames[(m_count + static_cast<int>(position) % m_count) % m_count];
   }
+  void backwards() { m_backwards = true; }
+  void clamp() { m_clamping = true; }
 
 private:
   const sprites::Sprite* const* m_frames;
   int m_count;
+  bool m_backwards{ };
+  bool m_clamping{ };
 };
 
 class Graphics {

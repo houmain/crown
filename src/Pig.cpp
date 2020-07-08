@@ -14,10 +14,10 @@ Pig::Pig(EntityType entity_type)
 }
 
 void Pig::update() {
-  Actor::update();
+  update_input();
 }
 
-void Pig::draw(Graphics& graphics, float frame_pos) {
+void Pig::draw(Graphics& graphics, float frame_pos) const {
   static float frame = 0;
   frame += TWEAKABLE(0.05);
 

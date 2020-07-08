@@ -16,8 +16,10 @@ class Object;
 class Entity {
 public:
   Object& get_object();
+  const Object& get_object() const;
 
   virtual void on_grounded() { }
+  virtual void on_interaction(Entity& other) { }
 
 protected:
   Entity(EntityType type);

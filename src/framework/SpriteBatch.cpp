@@ -63,6 +63,10 @@ void SpriteBatch::draw(float x, float y, const Texture& texture,
       m_texture_switch.back().second != &texture)
     m_texture_switch.emplace_back(m_client_buffer.size(), &texture);
 
+  // round to integral coordinates
+  x = std::floor(x * target_scale() + 0.5f) / target_scale();
+  y = std::floor(y * target_scale() + 0.5f) / target_scale();
+
   auto x0 = x / target_width() * 2.0f - 1;
   auto y0 = (target_height() - y * 2.0f) / target_height();
   auto x1 = x0 + w * 2.0f * scale / target_width();

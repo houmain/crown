@@ -16,7 +16,11 @@ public:
 
 protected:
   Actor(EntityType entity_type);
-  void update();
+  void update_input();
+
+  virtual void on_run() { }
+  virtual void on_attack() { }
+  virtual void on_jump() { }
 
 private:
   int m_input{ };

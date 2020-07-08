@@ -10,3 +10,7 @@ Entity::Entity(EntityType entity_type)
 Object& Entity::get_object() {
   return game->get_object(m_object_handle);
 }
+
+const Object& Entity::get_object() const {
+  return game->get_object(m_object_handle);
+}

@@ -34,9 +34,11 @@ clang \
   src/framework/SpriteAtlas.cpp \
   src/framework/SpriteBatch.cpp \
   src/framework/Texture.cpp \
+  src/Entity.cpp \
   src/Actor.cpp \
   src/Player.cpp \
   src/Pig.cpp \
+  src/PigKing.cpp \
   src/Game.cpp \
   src/Graphics.cpp \
   src/main.cpp \

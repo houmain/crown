@@ -19,8 +19,11 @@ public:
   Player();
 
   void update();
-  void draw(Graphics& graphics, float frame_pos);
+  void draw(Graphics& graphics, float frame_pos) const;
 
+  void on_run() override;
+  void on_jump() override;
+  void on_attack() override;
   void on_grounded() override;
 
 private:
