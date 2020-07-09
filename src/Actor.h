@@ -12,6 +12,7 @@ enum class ActorInput {
 class Actor : public Entity {
 public:
   void apply_input(ActorInput input, bool down);
+  void set_looking_left(bool looking_left) { m_looking_left = looking_left; }
   bool looking_left() const { return m_looking_left; }
 
 protected:

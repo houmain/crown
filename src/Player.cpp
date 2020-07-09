@@ -6,54 +6,8 @@
 Player::Player()
   : Actor(EntityType::player) {
 
-  get_object().set_size(14, 26);
-}
-
-void Player::update() {
-  const auto& object = get_object();
-  switch (m_state) {
-    case State::running:
-      update_input();
-
-      if (!object.on_ground()) {
-        // jumping
-      }
-      else if (std::fabs(object.velocity_x()) > TWEAKABLE(0.25)) {
-        // running
-        m_state_counter += TWEAKABLE(0.15) * object.velocity_x();
-      }
-      else {
-        // idle
-        m_state_counter += TWEAKABLE(0.1);
-      }
-      break;
-
-    case State::grounded:
-      m_state_counter -= 1;
-      if (m_state_counter <= 0)
-        m_state = State::running;
-      break;
-
-    case State::attacking:
-      m_state_counter += TWEAKABLE(0.2);
-      if (m_state_counter >= 4)
-        m_state = State::running;
-      break;
-
-    case State::hit:
-      if (m_state_counter <= 0)
-        m_state = State::running;
-      break;
-
-    case State::dead:
-      break;
-
-    case State::entering:
-      break;
-
-    case State::leaving:
-      break;
-  }
+  auto& object = get_object();
+  object.set_size(14, 26);
 }
 
 void Player::on_run() {
@@ -74,8 +28,10 @@ void Player::on_jump() {
 
 void Player::on_attack() {
   if (m_state == State::running) {
+    auto& object = get_object();
     m_state = State::attacking;
     m_state_counter = 0;
+    object.set_interaction_radius(50);
   }
 }
 
@@ -83,7 +39,62 @@ void Player::on_grounded() {
   const auto& object = get_object();
   if (object.velocity_y() > TWEAKABLE(5)) {
     m_state = State::grounded;
-    m_state_counter = TWEAKABLE(2.5) * object.velocity_y() ;
+    m_state_counter = TWEAKABLE(2.5) * object.velocity_y();
+  }
+}
+
+void Player::on_hit() {
+  m_state = State::hit;
+  m_state_counter = 0;
+}
+
+void Player::update() {
+  auto& object = get_object();
+  switch (m_state) {
+    case State::running:
+      if (!object.on_ground()) {
+        // jumping
+      }
+      else if (std::fabs(object.velocity_x()) > TWEAKABLE(0.25)) {
+        // running
+        m_state_counter += TWEAKABLE(0.15) * object.velocity_x();
+      }
+      else {
+        // idle
+        m_state_counter += TWEAKABLE(0.1);
+      }
+      update_input();
+      break;
+
+    case State::grounded:
+      m_state_counter -= 1;
+      if (m_state_counter <= 0)
+        m_state = State::running;
+      break;
+
+    case State::attacking:
+      m_state_counter += TWEAKABLE(0.2);
+      if (m_state_counter >= 4) {
+        m_state = State::running;
+        object.set_interaction_radius(0);
+      }
+      break;
+
+    case State::hit:
+      m_state_counter += TWEAKABLE(0.1);
+      if (m_state_counter >= 4) {
+        m_state = State::running;
+      }
+      break;
+
+    case State::dead:
+      break;
+
+    case State::entering:
+      break;
+
+    case State::leaving:
+      break;
   }
 }
 
@@ -135,4 +146,16 @@ void Player::draw(Graphics& graphics, float frame_pos) const {
     object.get_y_at(frame_pos),
     animation, m_state_counter,
     looking_left());
+}
+
+void Player::on_interaction(Entity& other) {
+  auto& object = other.get_object();
+  if (m_state == State::attacking && !m_state_counter) {
+    if (looking_left())
+      object.apply_force(-5, -5);
+    else
+      object.apply_force(5, -5);
+
+    other.on_hit();
+  }
 }

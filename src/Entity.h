@@ -20,6 +20,7 @@ public:
 
   virtual void on_grounded() { }
   virtual void on_interaction(Entity& other) { }
+  virtual void on_hit() { }
 
 protected:
   Entity(EntityType type);

@@ -31,6 +31,10 @@ void Object::set_size(float width, float height) {
   m_height = height;
 }
 
+void Object::set_interaction_radius(float radius) {
+  m_square_interaction_radius = (radius * radius);
+}
+
 void Object::update(const World& world) {
   // gravity
   m_velocity_y += TWEAKABLE(0.2f);
@@ -98,17 +102,26 @@ void Object::update(const World& world) {
 }
 
 bool Object::overlaps(const Object& other) const {
-  return !(m_x + m_width < other.m_x ||
-           m_y + m_height < other.m_y ||
-           other.m_x + other.m_width < m_x ||
-           other.m_y + other.m_height < m_y);
+  return !(m_x + m_width <= other.m_x ||
+           m_y + m_height <= other.m_y ||
+           other.m_x + other.m_width <= m_x ||
+           other.m_y + other.m_height <= m_y);
 }
 
 void Object::interact(Object &other) {
-  if (overlaps(other)) {
+  const auto dx = m_x - other.m_x;
+  const auto dy = m_y - other.m_y;
+  const auto square_distance = (dx * dx + dy * dy);
+  if (square_distance < m_square_interaction_radius ||
+      square_distance < other.m_square_interaction_radius) {
+
     auto& entity = get_entity();
     auto& other_entity = other.get_entity();
-    entity.on_interaction(other_entity);
-    other_entity.on_interaction(entity);
+
+    if (square_distance < m_square_interaction_radius)
+      entity.on_interaction(other_entity);
+
+    if (square_distance < other.m_square_interaction_radius)
+      other_entity.on_interaction(entity);
   }
 }

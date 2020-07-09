@@ -16,11 +16,11 @@ void Actor::apply_input(ActorInput input, bool down) {
 
 void Actor::update_input() {
   if (m_input & static_cast<int>(ActorInput::move_left)) {
-    m_looking_left = true;
+    set_looking_left(true);
     on_run();
   }
   if (m_input & static_cast<int>(ActorInput::move_right)) {
-    m_looking_left = false;
+    set_looking_left(false);
     on_run();
   }
   if (m_input & static_cast<int>(ActorInput::jump))

@@ -37,6 +37,7 @@ void Game::do_update() {
   m_update_timeline.step(update_interval());
 
   m_player.update();
+  m_pig_king.update();
 
   for (auto& pig : m_pigs)
     pig.update();

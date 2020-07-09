@@ -130,6 +130,7 @@ const Sprite sprite_105 { 18, 313, 18, 17, 6.0, 17.0 };
 const Sprite window_1 { 59, 0, 55, 57, -9.0, -7.0 };
 const Sprite window_2 { 114, 0, 55, 57, -9.0, -7.0 };
 
+const Sprite* const king_pig_attack[] { &sprite_55, &sprite_56, &sprite_57, &sprite_58, &sprite_59, };
 const Sprite* const king_pig_dead[] { &sprite_60, &sprite_61, &sprite_62, &sprite_63, };
 const Sprite* const king_pig_fall[] { &sprite_64, };
 const Sprite* const king_pig_ground[] { &sprite_65, };
