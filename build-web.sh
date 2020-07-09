@@ -28,6 +28,7 @@ clang \
   libs/libxm/src/xm.c \
   src/platform/platform_wajic.cpp \
   src/framework/get_resource.cpp \
+  src/framework/audio.cpp \
   src/framework/ImageFile.cpp \
   src/framework/Target.cpp \
   src/framework/ShaderProgram.cpp \

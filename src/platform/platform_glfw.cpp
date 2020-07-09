@@ -9,9 +9,15 @@
 #include "miniaudio/miniaudio.h"
 
 #include <cstdio>
+#include <vector>
 
 namespace {
+  struct PlayingAudio : AudioBuffer {
+    int position{ };
+  };
+
   GLFWwindow* g_window;
+  std::vector<PlayingAudio> g_playing_audio;
 
   void set_fullscreen(bool fullscreen) {
     auto monitor = glfwGetPrimaryMonitor();
@@ -61,15 +67,39 @@ namespace {
     platform_on_mouse_wheel(deltax, deltay);
   }
 
-  void audio_callback(ma_device*, void* output_frames, const void*, ma_uint32 frame_count) {
-    if (output_frames && frame_count)
-      platform_music_callback(static_cast<float*>(output_frames), static_cast<int>(frame_count));
+  void audio_callback(ma_device*, void* output_frames_, const void*, ma_uint32 frame_count_) {
+    const auto output_frames = static_cast<float*>(output_frames_);
+    const auto frame_count = static_cast<int>(frame_count_);
+
+    if (output_frames && frame_count) {
+      platform_music_callback(output_frames, frame_count);
+
+      for (auto it = begin(g_playing_audio); it != end(g_playing_audio); ) {
+        const auto sample_count =
+          std::min(it->sample_count - it->position, frame_count);
+
+        for (auto i = 0; i < 2 * sample_count; ) {
+          const auto sample = (it->samples.get())[it->position++];
+          output_frames[i++] += sample;
+          output_frames[i++] += sample;
+        }
+
+        if (it->position == it->sample_count)
+          it = g_playing_audio.erase(it);
+        else
+          ++it;
+      }
+    }
   }
 } // namespace
 
 void platform_error(const char* message) {
   std::fprintf(stderr, "%s", message);
   std::abort();
+}
+
+void platform_play_audio(AudioBuffer buffer) {
+  g_playing_audio.push_back({ std::move(buffer) });
 }
 
 #if !defined(_WIN32)

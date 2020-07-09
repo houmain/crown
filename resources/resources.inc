@@ -17,3 +17,7 @@ RESOURCE_END
 RESOURCE_BEGIN("dualtrax.xm")
 #include "dualtrax.xm.h"
 RESOURCE_END
+
+RESOURCE_BEGIN("sounds/swing.ogg")
+#include "sounds/swing.ogg.h"
+RESOURCE_END

@@ -21,6 +21,7 @@ set(SOURCES
     src/framework/SpriteBatch.cpp
     src/framework/Texture.cpp
     src/framework/get_resource.cpp
+    src/framework/audio.cpp
     src/Entity.cpp
     src/Actor.cpp
     src/Player.cpp

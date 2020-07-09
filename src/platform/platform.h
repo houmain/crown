@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include <string>
+#include <memory>
 
 extern const char* platform_window_title;
 extern const int platform_initial_width;
@@ -52,6 +53,11 @@ enum class KeyCode {
   ArrowUp = 265, // GLFW_KEY_UP
 };
 
+struct AudioBuffer {
+  std::shared_ptr<const float> samples;
+  int sample_count;
+};
+
 void platform_on_setup();
 void platform_on_update(int width, int height, double time);
 void platform_on_key(KeyCode key, bool down);
@@ -61,4 +67,5 @@ void platform_on_mouse_move(int x, int y);
 void platform_on_mouse_wheel(double dx, double dy);
 void platform_music_callback(float* output_frames, int frame_count);
 
+void platform_play_audio(AudioBuffer buffer);
 void platform_error(const char* message);

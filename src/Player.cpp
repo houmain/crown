@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "Graphics.h"
 #include "Object.h"
+#include "framework/audio.h"
 
 Player::Player()
   : Actor(EntityType::player) {
@@ -22,8 +23,12 @@ void Player::on_jump() {
   auto& object = get_object();
   const auto jump_acceleration = TWEAKABLE(4.0);
   const auto run_jump_acceleration = TWEAKABLE(0.4);
-  if (object.on_ground())
+  if (object.on_ground()) {
     object.apply_force(0, -(jump_acceleration + run_jump_acceleration * std::fabs(object.velocity_x())));
+
+    static auto buffer = load_ogg_vorbis_mono("sounds/swing.ogg");
+    platform_play_audio(buffer);
+  }
 }
 
 void Player::on_attack() {

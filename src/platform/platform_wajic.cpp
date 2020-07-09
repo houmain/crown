@@ -67,36 +67,48 @@ WAJIC(void, WASetupInput, (), {
 })
 
 WAJIC(void, WASetupAudio, (), {
-  let audioCtx;
-  try { audioCtx = new AudioContext(); } catch (e) { }
-  if (!audioCtx) { WA.print('Warning: WebAudio not supported\n'); return; }
+  try { WA.audio = new AudioContext(); } catch (e) { }
+  if (!WA.audio) { WA.print('Warning: WebAudio not supported\n'); return; }
 
-  const frameCount = 0.2 * audioCtx.sampleRate;
+  const frameCount = 0.2 * WA.audio.sampleRate;
   let samples = ASM.malloc(frameCount * 4 * 2);
   let f32samples = samples / 4;
   let encTime = 0;
 
   const streamFunc = function() {
     if (STOP) {
-      audioCtx.close();
+      WA.audio.close();
       return;
     }
 
     ASM.WAFNMusic(samples, frameCount);
-    let buffer = audioCtx.createBuffer(2, frameCount, audioCtx.sampleRate);
+    let buffer = WA.audio.createBuffer(2, frameCount, WA.audio.sampleRate);
     buffer.getChannelData(0).set(MF32.subarray(f32samples, f32samples + frameCount));
     buffer.getChannelData(1).set(MF32.subarray(f32samples + frameCount, f32samples + 2 * frameCount));
 
-    let source = audioCtx.createBufferSource();
+    let source = WA.audio.createBufferSource();
     source.buffer = buffer;
-    source.connect(audioCtx.destination);
-    encTime = Math.max(encTime, audioCtx.currentTime);
+    source.connect(WA.audio.destination);
+    encTime = Math.max(encTime, WA.audio.currentTime);
     source.start(encTime);
-    encTime += frameCount / audioCtx.sampleRate;
+    encTime += frameCount / WA.audio.sampleRate;
 
-    window.setTimeout(streamFunc, (encTime - audioCtx.currentTime - 0.1) * 1000);
+    window.setTimeout(streamFunc, (encTime - WA.audio.currentTime - 0.1) * 1000);
   };
   streamFunc();
+})
+
+WAJIC(void, WAPlayAudio, (const float* samples, int sampleCount), {
+  let f32samples = samples / 4;
+
+  let buffer = WA.audio.createBuffer(2, sampleCount, WA.audio.sampleRate);
+  buffer.getChannelData(0).set(MF32.subarray(f32samples, f32samples + sampleCount));
+  buffer.getChannelData(1).set(MF32.subarray(f32samples, f32samples + sampleCount));
+
+  let source = WA.audio.createBufferSource();
+  source.buffer = buffer;
+  source.connect(WA.audio.destination);
+  source.start();
 })
 
 WA_EXPORT(WAFNDraw) void WAFNDraw(int width, int height, int t) {
@@ -130,6 +142,10 @@ WA_EXPORT(WAFNMusic) void WAFNMusic(float* samples, int frameCount) {
 void platform_error(const char* message) {
   std::fprintf(stderr, "%s", message);
   std::abort();
+}
+
+void platform_play_audio(AudioBuffer buffer) {
+  WAPlayAudio(buffer.samples.get(), buffer.sample_count);
 }
 
 int main() {

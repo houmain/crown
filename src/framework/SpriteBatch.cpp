@@ -116,11 +116,12 @@ void SpriteBatch::flush() {
   m_program.bind();
 
   auto prev_offset = size_t{ };
-  for (const auto& [offset, texture] : m_texture_switch) {
+  for (const auto& offset_texture : m_texture_switch) {
+    const auto offset = offset_texture.first;
     if (offset != prev_offset)
       glDrawArrays(GL_TRIANGLES, static_cast<GLint>(prev_offset) * 6, 
         static_cast<GLsizei>(offset - prev_offset) * 6);
-    texture->bind(0);
+    offset_texture.second->bind(0);
     prev_offset = offset;
   }
   glDrawArrays(GL_TRIANGLES, static_cast<GLint>(prev_offset) * 6, 
