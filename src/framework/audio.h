@@ -1,5 +1,5 @@
 #pragma once
 
-#include "platform/platform.h"
+#include <string>
 
-AudioBuffer load_ogg_vorbis_mono(std::string_view filename);
+void play_audio(std::string_view filename, float volume = 1.0f);

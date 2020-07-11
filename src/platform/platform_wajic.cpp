@@ -1,7 +1,6 @@
 
 #include "platform.h"
-
-# include <wajic_gl.h>
+#include <wajic_gl.h>
 
 WAJIC(void, WASetupCanvas, (int width, int height), {
   const canvas = WA.canvas;
@@ -98,16 +97,20 @@ WAJIC(void, WASetupAudio, (), {
   streamFunc();
 })
 
-WAJIC(void, WAPlayAudio, (const float* samples, int sampleCount), {
+WAJIC(void, WAPlayAudio, (const float* samples, int sampleCount, float volume), {
   let f32samples = samples / 4;
 
   let buffer = WA.audio.createBuffer(2, sampleCount, WA.audio.sampleRate);
   buffer.getChannelData(0).set(MF32.subarray(f32samples, f32samples + sampleCount));
   buffer.getChannelData(1).set(MF32.subarray(f32samples, f32samples + sampleCount));
 
+  let gain = WA.audio.createGain();
+  gain.gain.value = volume;
+  gain.connect(WA.audio.destination);
+
   let source = WA.audio.createBufferSource();
   source.buffer = buffer;
-  source.connect(WA.audio.destination);
+  source.connect(gain);
   source.start();
 })
 
@@ -144,8 +147,9 @@ void platform_error(const char* message) {
   std::abort();
 }
 
-void platform_play_audio(AudioBuffer buffer) {
-  WAPlayAudio(buffer.samples.get(), buffer.sample_count);
+void platform_play_audio(AudioBuffer buffer, float volume_left, float volume_right) {
+  WAPlayAudio(buffer.samples.get(), buffer.sample_count,
+    std::max(volume_left, volume_right));
 }
 
 int main() {

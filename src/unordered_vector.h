@@ -59,8 +59,10 @@ public:
 
 private:
   index_t get_offset_by_index(index_t index) const {
+#if !defined(NDEBUG)
     assert(index < m_index_to_offset.size());
     assert(m_index_to_offset[index] < m_values.size());
+#endif
     return m_index_to_offset[index];
   }
 

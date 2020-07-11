@@ -26,8 +26,7 @@ void Player::on_jump() {
   if (object.on_ground()) {
     object.apply_force(0, -(jump_acceleration + run_jump_acceleration * std::fabs(object.velocity_x())));
 
-    static auto buffer = load_ogg_vorbis_mono("sounds/swing.ogg");
-    platform_play_audio(buffer);
+    play_audio("sounds/swing.ogg");
   }
 }
 
@@ -37,6 +36,8 @@ void Player::on_attack() {
     m_state = State::attacking;
     m_state_counter = 0;
     object.set_interaction_radius(50);
+
+    play_audio("sounds/swing.ogg");
   }
 }
 

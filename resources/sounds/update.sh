@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 for file in raw/*.wav; do
   ogg="$(basename $file)"

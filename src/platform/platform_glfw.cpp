@@ -10,14 +10,53 @@
 
 #include <cstdio>
 #include <vector>
+#include <atomic>
 
 namespace {
-  struct PlayingAudio : AudioBuffer {
-    int position{ };
+  GLFWwindow* g_window;
+
+  int find_first_zero(uint32_t bitmask) {
+    for (auto i = 0; ; ++i, bitmask >>= 1)
+      if ((bitmask & 0x01) == 0)
+        return i;
+  }
+
+  class AudioBufferManager {
+  public:
+    static const auto max_buffers = 8;
+
+    struct PlayingBuffer : AudioBuffer {
+      int position;
+      float volume_left;
+      float volume_right;
+    };
+
+    void play(AudioBuffer&& buffer, float volume_left, float volume_right) {
+      const auto index = find_first_zero(m_being_consumed.load());
+      if (index < max_buffers) {
+        m_buffers[index] = { std::move(buffer), 0, volume_left, volume_right };
+        m_being_consumed.fetch_add(1 << index);
+      }
+    }
+
+    template<typename F> // F(PlayingBuffer& buffer)
+    void for_each_playing_buffer(F&& callback) {
+      const auto being_consumed = m_being_consumed.load();
+      for (auto i = 0; i < max_buffers; ++i)
+        if (being_consumed & (1 << i)) {
+          auto& buffer = m_buffers[i];
+          callback(buffer);
+          if (buffer.position >= buffer.sample_count)
+            m_being_consumed.fetch_sub(1 << i);
+        }
+    }
+
+  private:
+    std::array<PlayingBuffer, max_buffers> m_buffers;
+    std::atomic<uint32_t> m_being_consumed{ };
   };
 
-  GLFWwindow* g_window;
-  std::vector<PlayingAudio> g_playing_audio;
+  AudioBufferManager g_audio_buffer_manager;
 
   void set_fullscreen(bool fullscreen) {
     auto monitor = glfwGetPrimaryMonitor();
@@ -74,21 +113,19 @@ namespace {
     if (output_frames && frame_count) {
       platform_music_callback(output_frames, frame_count);
 
-      for (auto it = begin(g_playing_audio); it != end(g_playing_audio); ) {
-        const auto sample_count =
-          std::min(it->sample_count - it->position, frame_count);
+      g_audio_buffer_manager.for_each_playing_buffer(
+        [&](AudioBufferManager::PlayingBuffer& buffer) {
+          const auto sample_count =
+            std::min(buffer.sample_count - buffer.position, frame_count);
+          const auto volume_left = buffer.volume_left;
+          const auto volume_right = buffer.volume_right;
 
-        for (auto i = 0; i < 2 * sample_count; ) {
-          const auto sample = (it->samples.get())[it->position++];
-          output_frames[i++] += sample;
-          output_frames[i++] += sample;
-        }
-
-        if (it->position == it->sample_count)
-          it = g_playing_audio.erase(it);
-        else
-          ++it;
-      }
+          for (auto i = 0; i < 2 * sample_count; ) {
+            const auto sample = (buffer.samples.get())[buffer.position++];
+            output_frames[i++] += sample * volume_left;
+            output_frames[i++] += sample * volume_right;
+          }
+        });
     }
   }
 } // namespace
@@ -98,8 +135,8 @@ void platform_error(const char* message) {
   std::abort();
 }
 
-void platform_play_audio(AudioBuffer buffer) {
-  g_playing_audio.push_back({ std::move(buffer) });
+void platform_play_audio(AudioBuffer buffer, float volume_left, float volume_right) {
+  g_audio_buffer_manager.play(std::move(buffer), volume_left, volume_right);
 }
 
 #if !defined(_WIN32)

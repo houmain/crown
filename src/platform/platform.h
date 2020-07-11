@@ -67,5 +67,5 @@ void platform_on_mouse_move(int x, int y);
 void platform_on_mouse_wheel(double dx, double dy);
 void platform_music_callback(float* output_frames, int frame_count);
 
-void platform_play_audio(AudioBuffer buffer);
+void platform_play_audio(AudioBuffer buffer, float volume_left, float volume_right);
 void platform_error(const char* message);
