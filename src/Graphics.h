@@ -13,17 +13,22 @@ public:
     : m_frames(frames), m_count(N) {
   }
 
-  const sprites::Sprite& get_frame(float position) const {
+  void backwards() { m_backwards = true; }
+  void clamp() { m_clamping = true; }
+
+  int get_frame_index(float position) const {
     if (m_backwards) {
       position = m_count - 1 - position;
     }
     if (m_clamping) {
       position = std::min(std::max(position, 0.0f), static_cast<float>(m_count - 1));
     }
-    return *m_frames[(m_count + static_cast<int>(position) % m_count) % m_count];
+    return (m_count + static_cast<int>(position) % m_count) % m_count;
   }
-  void backwards() { m_backwards = true; }
-  void clamp() { m_clamping = true; }
+
+  const sprites::Sprite& get_frame(float position) const {
+    return *m_frames[get_frame_index(position)];
+  }
 
 private:
   const sprites::Sprite* const* m_frames;

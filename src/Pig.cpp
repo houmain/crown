@@ -17,8 +17,8 @@ Pig::Pig(EntityType entity_type)
 
 
 void Pig::on_run() {
-  const auto run_acceleration = TWEAKABLE(0.25);
-  const auto fly_acceleration = TWEAKABLE(0.05);
+  const auto run_acceleration = TWEAKABLE(0.25f);
+  const auto fly_acceleration = TWEAKABLE(0.05f);
   auto& object = get_object();
   object.apply_force((object.on_ground() ? run_acceleration : fly_acceleration) *
     (looking_left() ? -1 : 1), 0);
@@ -26,8 +26,8 @@ void Pig::on_run() {
 
 void Pig::on_jump() {
   auto& object = get_object();
-  const auto jump_acceleration = TWEAKABLE(4.0);
-  const auto run_jump_acceleration = TWEAKABLE(0.4);
+  const auto jump_acceleration = TWEAKABLE(4.0f);
+  const auto run_jump_acceleration = TWEAKABLE(0.4f);
   if (object.on_ground())
     object.apply_force(0, -(jump_acceleration + run_jump_acceleration * std::fabs(object.velocity_x())));
 }
@@ -41,9 +41,9 @@ void Pig::on_attack() {
 
 void Pig::on_grounded() {
   const auto& object = get_object();
-  if (object.velocity_y() > TWEAKABLE(5)) {
+  if (object.velocity_y() > TWEAKABLE(5.0f)) {
     m_state = State::grounded;
-    m_state_counter = TWEAKABLE(2.5) * object.velocity_y();
+    m_state_counter = TWEAKABLE(2.5f) * object.velocity_y();
   }
 }
 
@@ -62,13 +62,17 @@ void Pig::update() {
       if (!object.on_ground()) {
         // jumping
       }
-      else if (std::fabs(object.velocity_x()) > TWEAKABLE(0.25)) {
+      else if (std::fabs(object.velocity_x()) > TWEAKABLE(0.25f)) {
         // running
-        m_state_counter += TWEAKABLE(0.15) * object.velocity_x();
+        m_state_counter += TWEAKABLE(0.15f) * object.velocity_x();
+      }
+      else if (object.velocity_x()) {
+        // halting
+        m_state_counter = 0;
       }
       else {
         // idle
-        m_state_counter += TWEAKABLE(0.1);
+        m_state_counter += TWEAKABLE(0.1f);
       }
       update_input();
       break;
@@ -80,7 +84,7 @@ void Pig::update() {
       break;
 
     case State::attacking:
-      m_state_counter += TWEAKABLE(0.2);
+      m_state_counter += TWEAKABLE(0.2f);
       if (m_state_counter >= 4) {
         m_state = State::running;
         object.set_interaction_radius(0);
@@ -88,7 +92,7 @@ void Pig::update() {
       break;
 
     case State::hit:
-      m_state_counter += TWEAKABLE(0.1);
+      m_state_counter += TWEAKABLE(0.1f);
       if (m_state_counter >= 4) {
         m_state = State::dead;
         m_state_counter = 0;
@@ -96,7 +100,7 @@ void Pig::update() {
       break;
 
     case State::dead:
-      m_state_counter += TWEAKABLE(0.1);
+      m_state_counter += TWEAKABLE(0.1f);
       break;
   }
 }
@@ -110,7 +114,7 @@ void Pig::draw(Graphics& graphics, float frame_pos) const {
         animation = (object.velocity_y() < 0 ?
           sprites::pig_jump : sprites::pig_fall);
       }
-      else if (std::fabs(object.velocity_x()) > TWEAKABLE(0.25)) {
+      else if (std::fabs(object.velocity_x()) > TWEAKABLE(0.25f)) {
         animation = sprites::pig_run;
       }
       else {
