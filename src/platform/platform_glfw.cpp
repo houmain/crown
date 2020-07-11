@@ -131,7 +131,7 @@ namespace {
 } // namespace
 
 void platform_error(const char* message) {
-  std::fprintf(stderr, "%s", message);
+  std::fprintf(stderr, "%s\n", message);
   std::abort();
 }
 

@@ -2,6 +2,7 @@
 #include "Pig.h"
 #include "Graphics.h"
 #include "Object.h"
+#include "framework/audio.h"
 
 Pig::Pig()
   : Pig(EntityType::pig) {
@@ -11,7 +12,7 @@ Pig::Pig(EntityType entity_type)
   : Actor(entity_type) {
 
   auto& object = get_object();
-  object.set_size(18, 18);
+  object.set_size(14, 16);
   object.set_interaction_radius(200);
 }
 
@@ -41,10 +42,13 @@ void Pig::on_attack() {
 
 void Pig::on_grounded() {
   const auto& object = get_object();
-  if (object.velocity_y() > TWEAKABLE(5.0f)) {
-    m_state = State::grounded;
-    m_state_counter = TWEAKABLE(2.5f) * object.velocity_y();
+  if (m_state == State::running) {
+    if (object.velocity_y() > TWEAKABLE(5.0f)) {
+      m_state = State::grounded;
+      m_state_counter = TWEAKABLE(2.5f) * object.velocity_y();
+    }
   }
+  play_audio("swing2.ogg", TWEAKABLE(0.3f));
 }
 
 void Pig::on_hit() {
@@ -52,7 +56,9 @@ void Pig::on_hit() {
   m_state_counter = 0;
 
   const auto& object = get_object();
-  set_looking_left(object.velocity_x() < 0);
+  set_looking_left(object.velocity_x() > 0);
+
+  play_audio("grunt1.ogg", TWEAKABLE(0.5f));
 }
 
 void Pig::update() {
@@ -62,17 +68,26 @@ void Pig::update() {
       if (!object.on_ground()) {
         // jumping
       }
-      else if (std::fabs(object.velocity_x()) > TWEAKABLE(0.25f)) {
-        // running
-        m_state_counter += TWEAKABLE(0.15f) * object.velocity_x();
-      }
       else if (object.velocity_x()) {
-        // halting
-        m_state_counter = 0;
+        // running
+        const auto animation = Animation(sprites::pig_run);
+        const auto prev_frame_index = animation.get_frame_index(m_state_counter);
+
+        if (std::fabs(object.velocity_x()) > TWEAKABLE(0.25f)) {
+          m_state_counter += TWEAKABLE(0.15f) * object.velocity_x();
+        }
+        else {
+          // halting
+          m_state_counter = 0;
+        }
+
+        const auto frame_index = animation.get_frame_index(m_state_counter);
+        if (prev_frame_index != frame_index && (frame_index == 2 || frame_index == 5))
+          play_audio("swing3.ogg", TWEAKABLE(0.3f));
       }
       else {
         // idle
-        m_state_counter += TWEAKABLE(0.1f);
+        m_state_counter += TWEAKABLE(0.1);
       }
       update_input();
       break;

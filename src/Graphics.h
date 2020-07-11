@@ -3,7 +3,7 @@
 #include "framework/Texture.h"
 #include "framework/SpriteBatch.h"
 #include "framework/Target.h"
-#include "resources/sprites.h"
+#include "resources/_generated/sprites.h"
 #include "NanoVG.h"
 
 class Animation {

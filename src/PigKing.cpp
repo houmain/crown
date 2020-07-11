@@ -47,5 +47,5 @@ void PigKing::draw(Graphics& graphics, float frame_pos) const {
     object.get_x_at(frame_pos),
     object.get_y_at(frame_pos),
     animation, state_counter(),
-    looking_left());
+    !looking_left());
 }

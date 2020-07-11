@@ -24,6 +24,7 @@
 
 extern "C" {
 #include "libxm/xm.h"
+#include "libxm/src/xm_internal.h"
 }
 
 #include "framework/Texture.h"
@@ -70,6 +71,8 @@ void platform_music_callback(float* output_frames, int frame_count) {
     auto xm = get_resource("dualtrax.xm");
     xm_create_context_safe(&xm_context,
       reinterpret_cast<const char*>(xm.first), xm.second, 44100);
+
+    xm_context->global_volume = 0.5f;
   }
   xm_generate_samples(xm_context, output_frames, frame_count);
 #endif
@@ -80,6 +83,8 @@ void platform_on_key(KeyCode key, bool down) {
   switch (key) {
     case KeyCode::ArrowUp:
     case KeyCode::KeyX: player.apply_input(ActorInput::jump, down); break;
+    case KeyCode::ControlLeft:
+    case KeyCode::ControlRight:
     case KeyCode::KeyC: player.apply_input(ActorInput::attack, down); break;
     case KeyCode::ArrowLeft: player.apply_input(ActorInput::move_left, down); break;
     case KeyCode::ArrowRight: player.apply_input(ActorInput::move_right, down); break;

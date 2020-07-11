@@ -21,6 +21,7 @@ extern const int platform_minimum_width;
 extern const int platform_minimum_height;
 
 enum class KeyCode {
+  Space = 32, // GLFW_KEY_SPACE
   KeyA = 65, // GLFW_KEY_A
   KeyB = 66, // GLFW_KEY_B
   KeyC = 67, // GLFW_KEY_C
@@ -51,6 +52,11 @@ enum class KeyCode {
   ArrowLeft = 263, // GLFW_KEY_LEFT
   ArrowDown = 264, // GLFW_KEY_DOWN
   ArrowUp = 265, // GLFW_KEY_UP
+  Enter = 257, // GLFW_KEY_ENTER
+  ShiftLeft = 340, // GLFW_KEY_LEFT_SHIFT
+  ControlLeft = 341, // GLFW_KEY_LEFT_CONTROL
+  ShiftRight = 344, // GLFW_KEY_RIGHT_SHIFT
+  ControlRight = 345, // GLFW_KEY_RIGHT_CONTROL
 };
 
 struct AudioBuffer {

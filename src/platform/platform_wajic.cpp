@@ -22,24 +22,28 @@ WAJIC(void, WASetupInput, (), {
   const cancelEvent = function(e) { if (e.preventDefault) e.preventDefault(true); else if (e.stopPropagation) e.stopPropagation(true); else e.stopped = true; };
   const windowEvent = function(t, f) { window.addEventListener(t, f, true); };
   const canvasEvent = function(t, f) { canvas.addEventListener(t, f, { capture:true, passive:false }); };
-  const getKeyCode = function(key) {
+  const getKeyCode = function(key, location) {
     if (key.length == 1)
       return key.toUpperCase().charCodeAt();
     switch (key) {
+      case 'Space': return 32;
       case 'ArrowRight': return 262;
       case 'ArrowLeft': return 263;
-      case 'Arrowdown': return 264;
+      case 'ArrowDown': return 264;
       case 'ArrowUp': return 265;
+      case 'Enter': return 257;
+      case 'Shift': return (location == 1 ? 340 : 344);
+      case 'Control': return (location == 1 ? 341 : 345);
     }
     return 0;
   };
   windowEvent('keydown', function(e) {
-    ASM.WAFNKey(true, getKeyCode(e.key));
+    ASM.WAFNKey(true, getKeyCode(e.key, e.location));
     if (e.key.length == 1) ASM.WAFNText(e.key.charCodeAt());
     cancelEvent(e);
   });
   windowEvent('keyup', function(e) {
-    ASM.WAFNKey(false, getKeyCode(e.key));
+    ASM.WAFNKey(false, getKeyCode(e.key, e.location));
     cancelEvent(e);
   });
   canvasEvent('mousemove', function(e) {

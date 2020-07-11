@@ -1,7 +1,7 @@
 
 #include "World.h"
 #include "Graphics.h"
-#include "resources/tiles.h"
+#include "resources/_generated/tiles.h"
 #include <random>
 #include <algorithm>
 

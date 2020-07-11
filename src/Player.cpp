@@ -27,7 +27,7 @@ void Player::on_jump() {
     object.apply_force(0, -(jump_acceleration + run_jump_acceleration *
       std::fabs(object.velocity_x())));
 
-    play_audio("sounds/swing.ogg", TWEAKABLE(0.1f));
+    play_audio("swing3.ogg", TWEAKABLE(0.6f));
   }
 }
 
@@ -38,7 +38,7 @@ void Player::on_attack() {
     m_state_counter = 0;
     object.set_interaction_radius(50);
 
-    play_audio("sounds/swing.ogg", TWEAKABLE(1.0f));
+    play_audio("swing.ogg", TWEAKABLE(1.0f));
   }
 }
 
@@ -48,10 +48,10 @@ void Player::on_grounded() {
     m_state = State::grounded;
     m_state_counter = TWEAKABLE(2.5f) * object.velocity_y();
 
-    play_audio("sounds/swing.ogg", TWEAKABLE(0.7f));
+    play_audio("swing2.ogg", TWEAKABLE(0.7f));
   }
   else {
-    play_audio("sounds/swing.ogg", TWEAKABLE(0.5f));
+    play_audio("swing2.ogg", TWEAKABLE(0.3f));
   }
 }
 
@@ -67,20 +67,22 @@ void Player::update() {
       if (!object.on_ground()) {
         // jumping
       }
-      else if (std::fabs(object.velocity_x()) > TWEAKABLE(0.25f)) {
+      else if (object.velocity_x()) {
         // running
         const auto animation = Animation(sprites::player_run);
         const auto prev_frame_index = animation.get_frame_index(m_state_counter);
 
-        m_state_counter += TWEAKABLE(0.15f) * object.velocity_x();
+        if (std::fabs(object.velocity_x()) > TWEAKABLE(0.25f)) {
+          m_state_counter += TWEAKABLE(0.15f) * object.velocity_x();
+        }
+        else {
+          // halting
+          m_state_counter = 0;
+        }
 
         const auto frame_index = animation.get_frame_index(m_state_counter);
         if (prev_frame_index != frame_index && (frame_index == 3 || frame_index == 7))
-          play_audio("sounds/swing.ogg", TWEAKABLE(0.3f));
-      }
-      else if (object.velocity_x()) {
-        // halting
-        m_state_counter = 0;
+          play_audio("swing3.ogg", TWEAKABLE(0.3f));
       }
       else {
         // idle
