@@ -24,6 +24,8 @@ protected:
   virtual void on_jump() { }
 
 private:
-  int m_input{ };
+  int m_input_hold{ };
+  int m_input_down{ };
+  int m_input_up{ };
   bool m_looking_left{ };
 };

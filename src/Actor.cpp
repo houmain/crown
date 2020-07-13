@@ -7,25 +7,35 @@ Actor::Actor(EntityType entity_type)
 
 void Actor::apply_input(ActorInput input, bool down) {
   if (down) {
-    m_input |= static_cast<int>(input);
+    m_input_down |= static_cast<int>(input);
   }
   else {
-    m_input &= ~static_cast<int>(input);
+    m_input_up |= static_cast<int>(input);
   }
 }
 
 void Actor::update_input() {
-  if (m_input & static_cast<int>(ActorInput::move_left)) {
+  m_input_hold |= m_input_down;
+  m_input_hold &= ~m_input_up;
+
+  const auto hold_or_down = [&](ActorInput input) {
+    return (((m_input_hold | m_input_down) & static_cast<int>(input)) != 0);
+  };
+
+  if (hold_or_down(ActorInput::move_left)) {
     set_looking_left(true);
     on_run();
   }
-  if (m_input & static_cast<int>(ActorInput::move_right)) {
+  if (hold_or_down(ActorInput::move_right)) {
     set_looking_left(false);
     on_run();
   }
-  if (m_input & static_cast<int>(ActorInput::jump))
+  if (hold_or_down(ActorInput::jump))
     on_jump();
 
-  if (m_input & static_cast<int>(ActorInput::attack))
+  if (hold_or_down(ActorInput::attack))
     on_attack();
+
+  m_input_down = { };
+  m_input_up = { };
 }
