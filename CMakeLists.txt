@@ -12,7 +12,6 @@ set(SOURCES
     libs/libxm/src/load.c
     libs/libxm/src/play.c
     libs/libxm/src/xm.c
-    resources/resources.inc
     src/platform/platform_glfw.cpp
     src/framework/ImageFile.cpp
     src/framework/Target.cpp

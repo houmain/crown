@@ -82,13 +82,33 @@ void platform_on_key(KeyCode key, bool down) {
   auto& player = game->player();
   switch (key) {
     case KeyCode::ArrowUp:
-    case KeyCode::KeyX: player.apply_input(ActorInput::jump, down); break;
+    case KeyCode::KeyX:
+      player.apply_input(ActorInput::jump, down);
+      break;
+
     case KeyCode::ControlLeft:
     case KeyCode::ControlRight:
-    case KeyCode::KeyC: player.apply_input(ActorInput::attack, down); break;
-    case KeyCode::ArrowLeft: player.apply_input(ActorInput::move_left, down); break;
-    case KeyCode::ArrowRight: player.apply_input(ActorInput::move_right, down); break;
-    default: break;
+    case KeyCode::KeyC:
+      player.apply_input(ActorInput::attack, down);
+      break;
+
+    case KeyCode::ArrowLeft:
+      player.apply_input(ActorInput::move_left, down);
+      break;
+
+    case KeyCode::ArrowRight:
+      player.apply_input(ActorInput::move_right, down);
+      break;
+
+    case KeyCode::KeyR:
+      if (!down) {
+        bind_default_target(native_width, native_height);
+        Game::instantiate();
+      }
+      break;
+
+    default:
+      break;
   }
 }
 

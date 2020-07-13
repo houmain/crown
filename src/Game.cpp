@@ -5,7 +5,12 @@ Game* game;
 
 void Game::instantiate() {
   // first allocate and set pointer to instance before constructing
-  game = static_cast<Game*>(::operator new(sizeof(Game)));
+  if (game) {
+    game->~Game();
+  }
+  else {
+    game = static_cast<Game*>(::operator new(sizeof(Game)));
+  }
   new (game) Game();
 }
 
@@ -24,13 +29,14 @@ Game::Game() {
 
 void Game::update(double time) {
   const auto time_elapsed = (time - m_previous_time);
-  m_previous_time = time;
-
-  m_update_time += time_elapsed / update_interval();
-  while (m_update_time > 1.0) {
-    do_update();
-    m_update_time -= 1.0;
+  if (m_previous_time) {
+    m_update_time += time_elapsed / update_interval();
+    while (m_update_time > 1.0) {
+      do_update();
+      m_update_time -= 1.0;
+    }
   }
+  m_previous_time = time;
 }
 
 void Game::do_update() {
