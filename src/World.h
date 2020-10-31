@@ -7,7 +7,7 @@ class Graphics;
 
 enum class CellType {
   wall,
-  floor,
+  room,
   platform_1,
   platform_2,
 };

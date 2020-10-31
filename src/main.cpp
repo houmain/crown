@@ -36,8 +36,8 @@ extern "C" {
 #include "Game.h"
 #include <memory>
 
-const auto native_width = 1920 / 3;
-const auto native_height = 1080 / 3;
+const auto native_width = 1680 / 2;
+const auto native_height = 1050 / 2;
 
 NVGcontext* vg;
 
@@ -101,7 +101,7 @@ void platform_on_key(KeyCode key, bool down) {
       break;
 
     case KeyCode::KeyR:
-      if (!down) {
+      if (down) {
         bind_default_target(native_width, native_height);
         Game::instantiate();
       }

@@ -24,15 +24,24 @@ void World::generate(int cells_x, int cells_y, int seed) {
     return (max > min ? min + rand() % (max - min) : min);
   };
 
-  for (auto i = 0; i < 11; ++i) {
-    // generate rooms
-    const auto sx = random(1, 6);
-    const auto sy = random(1, 4);
-    const auto px = random(0, m_cells_x - sx);
-    const auto py = random(0, m_cells_y - sy);
+  auto room_cells = 0;
+  const auto place_room = [&](int px, int py, int sx, int sy) {
     for (auto y = py; y < py + sy; ++y)
-      for (auto x = px; x < px + sx; ++x)
-        m_cells[y * m_cells_x + x].type = CellType::floor;
+      for (auto x = px; x < px + sx; ++x) {
+        auto& cell = m_cells[y * m_cells_x + x];
+        if (cell.type == CellType::wall) {
+          cell.type = CellType::room;
+          ++room_cells;
+        }
+      }
+  };
+
+  while (room_cells < (cells_x * cells_y) / 2) {
+    const auto sx = random(6, 9);
+    const auto sy = random(1, 3);
+    const auto px = random(1, m_cells_x - sx);
+    const auto py = random(1, m_cells_y - sy);
+    place_room(px, py, sx, sy);
 
     // generate some platforms
     for (auto j = 0; j < 1; ++j) {
@@ -40,7 +49,7 @@ void World::generate(int cells_x, int cells_y, int seed) {
       const auto px2 = px + random(0, sx - sx2);
       const auto py2 = py + random(0, sy);
       for (auto x = px2; x < px2 + sx2; ++x)
-        m_cells[py2 * m_cells_x + x].type = (i % 2 ?
+        m_cells[py2 * m_cells_x + x].type = (j % 2 ?
           CellType::platform_2 : CellType::platform_1);
     }
   }
@@ -185,10 +194,10 @@ void World::draw(Graphics& graphics) {
 }
 
 float World::distance_to_ground(float x, float y) const {
-  const auto cell_x = floor(x / tile_size);
-  auto cell_y = floor(y / tile_size) + 1;
+  const auto cell_x = std::floor(x / tile_size);
+  auto cell_y = std::floor(y / tile_size) + 1;
   auto distance = (cell_y * tile_size) - y;
-  while (cell_at(cell_x, cell_y).type == CellType::floor) {
+  while (cell_at(cell_x, cell_y).type == CellType::room) {
     distance += tile_size;
     ++cell_y;
   }
@@ -196,8 +205,8 @@ float World::distance_to_ground(float x, float y) const {
 }
 
 float World::distance_to_ceiling(float x, float y) const {
-  const auto cell_x = floor(x / tile_size);
-  auto cell_y = floor(y / tile_size);
+  const auto cell_x = std::floor(x / tile_size);
+  auto cell_y = std::floor(y / tile_size);
   auto distance = y - (cell_y * tile_size);
   while (cell_at(cell_x, cell_y - 1).type != CellType::wall) {
     distance += tile_size;
@@ -207,8 +216,8 @@ float World::distance_to_ceiling(float x, float y) const {
 }
 
 float World::distance_to_wall_left(float x, float y) const {
-  const auto cell_y = floor(y / tile_size);
-  auto cell_x = floor(x / tile_size);
+  const auto cell_y = std::floor(y / tile_size);
+  auto cell_x = std::floor(x / tile_size);
   auto distance = x - (cell_x * tile_size);
   while (cell_at(cell_x - 1, cell_y).type != CellType::wall) {
     distance += tile_size;
@@ -218,8 +227,8 @@ float World::distance_to_wall_left(float x, float y) const {
 }
 
 float World::distance_to_wall_right(float x, float y) const {
-  const auto cell_y = floor(y / tile_size);
-  auto cell_x = floor(x / tile_size) + 1;
+  const auto cell_y = std::floor(y / tile_size);
+  auto cell_x = std::floor(x / tile_size) + 1;
   auto distance = (cell_x * tile_size) - x;
   while (cell_at(cell_x, cell_y).type != CellType::wall) {
     distance += tile_size;

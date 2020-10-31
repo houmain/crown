@@ -12,7 +12,7 @@ Player::Player()
 }
 
 void Player::on_run() {
-  const auto run_acceleration = TWEAKABLE(0.25f);
+  const auto run_acceleration = TWEAKABLE(0.3f);
   const auto fly_acceleration = TWEAKABLE(0.05f);
   auto& object = get_object();
   object.apply_force((object.on_ground() ? run_acceleration : fly_acceleration) *
@@ -21,13 +21,17 @@ void Player::on_run() {
 
 void Player::on_jump() {
   auto& object = get_object();
-  const auto jump_acceleration = TWEAKABLE(4.0f);
-  const auto run_jump_acceleration = TWEAKABLE(0.4f);
+  const auto jump_acceleration = TWEAKABLE(3.0f);
+  const auto jump_run_acceleration = TWEAKABLE(0.45f);
+  const auto jump_hold_acceleration = TWEAKABLE(0.075f);
   if (object.on_ground()) {
-    object.apply_force(0, -(jump_acceleration + run_jump_acceleration *
+    object.apply_force(0, -(jump_acceleration + jump_run_acceleration *
       std::fabs(object.velocity_x())));
 
     play_audio("swing3.ogg", TWEAKABLE(0.6f));
+  }
+  else if (object.velocity_y() < 0) {
+    object.apply_force(0, -jump_hold_acceleration);
   }
 }
 
@@ -38,13 +42,16 @@ void Player::on_attack() {
     m_state_counter = 0;
     object.set_interaction_radius(50);
 
+    if (object.on_ground())
+      object.apply_force(TWEAKABLE(-0.5f) * (looking_left() ? 1 : -1), 0);
+
     play_audio("swing.ogg", TWEAKABLE(1.0f));
   }
 }
 
 void Player::on_grounded() {
   const auto& object = get_object();
-  if (object.velocity_y() > TWEAKABLE(5.0f)) {
+  if (object.velocity_y() > TWEAKABLE(6.0f)) {
     m_state = State::grounded;
     m_state_counter = TWEAKABLE(2.5f) * object.velocity_y();
 

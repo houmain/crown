@@ -17,7 +17,9 @@ void Game::instantiate() {
 Game::Game() {
   const auto cells_x = target_width() / m_world.tile_size;
   const auto cells_y = target_height() / m_world.tile_size;
-  m_world.generate(cells_x, cells_y, 5);
+
+  static auto seed = 1;
+  m_world.generate(cells_x, cells_y, seed++);
   m_world.generate_texture(m_graphics, target_width(), target_height());
 
   m_player.get_object().set_position(380, 90);
