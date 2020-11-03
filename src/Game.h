@@ -7,7 +7,6 @@
 #include "PigKing.h"
 #include "Object.h"
 #include "unordered_vector.h"
-#include "choreograph/Choreograph.h"
 
 extern class Game* game;
 
@@ -35,14 +34,10 @@ private:
   World m_world;
 
   // state
-  choreograph::Timeline m_update_timeline;
   double m_update_time{ };
   double m_previous_time{ };
   unordered_vector<Object, Handle> m_objects;
   unordered_vector<Pig, Handle> m_pigs;
   Player m_player;
   PigKing m_pig_king;
-
-  // view
-  choreograph::Timeline m_draw_timeline;
 };

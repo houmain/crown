@@ -42,8 +42,6 @@ void Game::update(double time) {
 }
 
 void Game::do_update() {
-  m_update_timeline.step(update_interval());
-
   m_player.update();
   m_pig_king.update();
 
@@ -81,7 +79,6 @@ Pig& Game::create_pig(float x, float y) {
 }
 
 void Game::draw() {
-  m_draw_timeline.jumpTo(m_update_timeline.time() + m_update_time * update_interval());
   const auto frame_pos = static_cast<float>(m_update_time);
 
   m_graphics.disable_blending();
