@@ -15,6 +15,7 @@ class Object;
 
 class Entity {
 public:
+  virtual ~Entity() = default;
   Object& get_object();
   const Object& get_object() const;
 

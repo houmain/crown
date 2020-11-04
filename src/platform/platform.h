@@ -2,6 +2,8 @@
 
 #if defined(__WAJIC__)
 # include <wajic_gl.h>
+#elif defined(ANDROID)
+# include <GLES3/gl3.h>
 #elif defined(_WIN32)
 # define NOMINMAX
 # include <glad/gl.h>
