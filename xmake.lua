@@ -77,6 +77,7 @@ target("Crown")
     -- generate JavaScript interface using WAjicUp
     after_link(function (target)
       local flags = {
+        --"-no_minify",
         "-rle",
       }
       os.run("node %s %s %s %s",
