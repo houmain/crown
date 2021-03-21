@@ -19,10 +19,14 @@ mkdir -p _generated
 echo "" > _generated/resources.inc
 
 # sprites
-spright -a -i sprites.conf -t sprites.template -o _generated/sprites.h -s _generated/sprites.png
-resource sprites.png _generated/sprites.png
+spright -a -i sprites.conf -t sprites.template -p _generated -o sprites.h
+spright -a -i tiles.conf -t tiles.template -p _generated -o tiles.h
 
-spright -a -i tiles.conf -t tiles.template -o _generated/tiles.h -s _generated/tiles.png
+if $(command -v pngquant >/dev/null 2>&1); then
+  pngquant _generated/*.png --ext=.png --force --skip-if-larger --floyd=0.3
+fi
+
+resource sprites.png _generated/sprites.png
 resource tiles.png _generated/tiles.png
 
 # music

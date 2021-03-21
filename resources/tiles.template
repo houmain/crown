@@ -8,12 +8,12 @@ struct Tile {
   int x, y;
 };
 
-{% for tag in tags %}
+{% for tag in tags -%}
 struct {{ tag.value }} {
-{% for sprite in tag.sprites %}
+{% for sprite in tag.sprites -%}
   static constexpr Tile tile_{{ sprite.id }} { {{ sprite.trimmedRect.x }}, {{ sprite.trimmedRect.y }} };
-{% endfor %}
+{% endfor -%}
 };
 
-{% endfor %}
+{% endfor -%}
 } // namespace
