@@ -259,7 +259,7 @@ int, glSetupCanvasContext, (int antialias WA_ARG(1), int depth WA_ARG(0), int st
 {
 	var canvas = WA.canvas;
 	var attr = { majorVersion: 1, minorVersion: 0, antialias: !!antialias, depth: !!depth, stencil: !!stencil, alpha: !!alpha };
-  var msg = "", webgl = escape('webgl'), errorEvent = webgl+'contextcreationerror';
+	var msg = "", webgl = escape('webgl'), errorEvent = webgl+'contextcreationerror';
 	var onError = function(event) { msg = event.statusMessage || msg; };
 	try
 	{

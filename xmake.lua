@@ -37,10 +37,11 @@ target("Crown")
     add_includedirs(
       "libs/wajic",
       emscripten_system .. "/include",
-      emscripten_system .. "/include/libcxx",
       emscripten_system .. "/include/compat",
-      emscripten_system .. "/include/libc",
-      emscripten_system .. "/lib/libc/musl/arch/emscripten")
+      emscripten_system .. "/lib/libcxx/include/",
+      emscripten_system .. "/lib/libc/musl/include",
+      emscripten_system .. "/lib/libc/musl/arch/emscripten",
+      emscripten_system .. "/lib/libc/musl/arch/generic")
       
     add_files("src/platform/platform_wajic.cpp")
     

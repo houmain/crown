@@ -15,11 +15,14 @@
 #include <emscripten/wire.h>
 #include <array>
 #include <vector>
+#include <climits>
 
 
 namespace emscripten {
 
     class val;
+
+    typedef struct _EM_VAL* EM_VAL;
 
     namespace internal {
 
@@ -37,7 +40,6 @@ namespace emscripten {
                 _EMVAL_FALSE = 4
             };
 
-            typedef struct _EM_VAL* EM_VAL;
             typedef struct _EM_DESTRUCTORS* EM_DESTRUCTORS;
             typedef struct _EM_METHOD_CALLER* EM_METHOD_CALLER;
             typedef double EM_GENERIC_WIRE_TYPE;
@@ -65,6 +67,8 @@ namespace emscripten {
             EM_VAL _emval_get_property(EM_VAL object, EM_VAL key);
             void _emval_set_property(EM_VAL object, EM_VAL key, EM_VAL value);
             EM_GENERIC_WIRE_TYPE _emval_as(EM_VAL value, TYPEID returnType, EM_DESTRUCTORS* destructors);
+            int64_t _emval_as_int64(EM_VAL value, TYPEID returnType);
+            uint64_t _emval_as_uint64(EM_VAL value, TYPEID returnType);
 
             bool _emval_equals(EM_VAL first, EM_VAL second);
             bool _emval_strictly_equals(EM_VAL first, EM_VAL second);
@@ -101,6 +105,7 @@ namespace emscripten {
             bool _emval_in(EM_VAL item, EM_VAL object);
             bool _emval_delete(EM_VAL object, EM_VAL property);
             bool _emval_throw(EM_VAL object);
+            EM_VAL _emval_await(EM_VAL promise);
         }
 
         template<const char* address>
@@ -186,9 +191,15 @@ namespace emscripten {
             union {
                 unsigned u;
                 float f;
+                #if __ILP32__
                 const void* p;
+                #endif
             } w[2];
             double d;
+            uint64_t u;
+            #if __LP64__
+            const void* p;
+            #endif
         };
         static_assert(sizeof(GenericWireType) == 8, "GenericWireType must be 8 bytes");
         static_assert(alignof(GenericWireType) == 8, "GenericWireType must be 8-byte-aligned");
@@ -203,16 +214,41 @@ namespace emscripten {
             ++cursor;
         }
 
+        inline void writeGenericWireType(GenericWireType*& cursor, int64_t wt) {
+            cursor->u = wt;
+            ++cursor;
+        }
+
+        inline void writeGenericWireType(GenericWireType*& cursor, uint64_t wt) {
+            cursor->u = wt;
+            ++cursor;
+        }
+
         template<typename T>
         void writeGenericWireType(GenericWireType*& cursor, T* wt) {
+            #if __ILP32__
             cursor->w[0].p = wt;
+            #else
+            cursor->p = wt;
+            // FIXME: This requires the JS reading code to be audited to be compatible with it.
+            assert(false);
+            abort();
+            #endif
             ++cursor;
         }
 
         template<typename ElementType>
         inline void writeGenericWireType(GenericWireType*& cursor, const memory_view<ElementType>& wt) {
             cursor->w[0].u = wt.size;
+            #if __ILP32__
             cursor->w[1].p = wt.data;
+            #else
+            // FIXME: need to change GenericWireType such that it can store a 64-bit pointer?
+            // This requires the JS reading code to be audited to be compatible with it.
+            cursor->w[1].u = 0;
+            assert(false);
+            abort();
+            #endif
             ++cursor;
         }
 
@@ -318,14 +354,14 @@ namespace emscripten {
         }
 
         static val undefined() {
-            return val(internal::EM_VAL(internal::_EMVAL_UNDEFINED));
+            return val(EM_VAL(internal::_EMVAL_UNDEFINED));
         }
 
         static val null() {
-            return val(internal::EM_VAL(internal::_EMVAL_NULL));
+            return val(EM_VAL(internal::_EMVAL_NULL));
         }
 
-        static val take_ownership(internal::EM_VAL e) {
+        static val take_ownership(EM_VAL e) {
             return val(e);
         }
 
@@ -370,14 +406,18 @@ namespace emscripten {
             internal::_emval_decref(handle);
         }
 
-        val& operator=(val&& v) {
+        EM_VAL as_handle() const {
+            return handle;
+        }
+
+        val& operator=(val&& v) & {
             internal::_emval_decref(handle);
             handle = v.handle;
             v.handle = 0;
             return *this;
         }
 
-        val& operator=(const val& v) {
+        val& operator=(const val& v) & {
             internal::_emval_incref(v.handle);
             internal::_emval_decref(handle);
             handle = v.handle;
@@ -389,19 +429,19 @@ namespace emscripten {
         }
 
         bool isNull() const {
-            return handle == internal::EM_VAL(internal::_EMVAL_NULL);
+            return handle == EM_VAL(internal::_EMVAL_NULL);
         }
 
         bool isUndefined() const {
-            return handle == internal::EM_VAL(internal::_EMVAL_UNDEFINED);
+            return handle == EM_VAL(internal::_EMVAL_UNDEFINED);
         }
 
         bool isTrue() const {
-            return handle == internal::EM_VAL(internal::_EMVAL_TRUE);
+            return handle == EM_VAL(internal::_EMVAL_TRUE);
         }
 
         bool isFalse() const {
-            return handle == internal::EM_VAL(internal::_EMVAL_FALSE);
+            return handle == EM_VAL(internal::_EMVAL_FALSE);
         }
 
         bool isNumber() const {
@@ -500,16 +540,40 @@ namespace emscripten {
             return fromGenericWireType<T>(result);
         }
 
+        template<>
+        int64_t as<int64_t>() const {
+            using namespace internal;
+
+            typedef BindingType<int64_t> BT;
+            typename WithPolicies<>::template ArgTypeList<int64_t> targetType;
+
+            return _emval_as_int64(
+                handle,
+                targetType.getTypes()[0]);
+        }
+
+        template<>
+        uint64_t as<uint64_t>() const {
+            using namespace internal;
+
+            typedef BindingType<uint64_t> BT;
+            typename WithPolicies<>::template ArgTypeList<uint64_t> targetType;
+
+            return  _emval_as_uint64(
+                handle,
+                targetType.getTypes()[0]);
+        }
+
 // If code is not being compiled with GNU extensions enabled, typeof() is not a reserved keyword, so support that as a member function.
 #if __STRICT_ANSI__
         val typeof() const {
-            return val(_emval_typeof(handle));
+            return val(internal::_emval_typeof(handle));
         }
 #endif
 
 // Prefer calling val::typeOf() over val::typeof(), since this form works in both C++11 and GNU++11 build modes. "typeof" is a reserved word in GNU++11 extensions.
         val typeOf() const {
-            return val(_emval_typeof(handle));
+            return val(internal::_emval_typeof(handle));
         }
 
         bool instanceof(const val& v) const {
@@ -525,22 +589,22 @@ namespace emscripten {
             return internal::_emval_delete(handle, val(property).handle);
         }
 
-        void throw_() const {
+        [[noreturn]] void throw_() const {
             internal::_emval_throw(handle);
+        }
+
+        val await() const {
+            return val(internal::_emval_await(handle));
         }
 
     private:
         // takes ownership, assumes handle already incref'd
-        explicit val(internal::EM_VAL handle)
+        explicit val(EM_VAL handle)
             : handle(handle)
         {}
 
         template<typename WrapperType>
         friend val internal::wrapped_extend(const std::string& , const val& );
-
-        internal::EM_VAL __get_handle() const {
-            return handle;
-        }
 
         template<typename Implementation, typename... Args>
         val internalCall(Implementation impl, Args&&... args) const {
@@ -556,7 +620,7 @@ namespace emscripten {
                     argv));
         }
 
-        internal::EM_VAL handle;
+        EM_VAL handle;
 
         friend struct internal::BindingType<val>;
     };
@@ -564,7 +628,7 @@ namespace emscripten {
     namespace internal {
         template<>
         struct BindingType<val> {
-            typedef internal::EM_VAL WireType;
+            typedef EM_VAL WireType;
             static WireType toWireType(const val& v) {
                 _emval_incref(v.handle);
                 return v.handle;
@@ -575,15 +639,33 @@ namespace emscripten {
         };
     }
 
-    template<typename T>
-    std::vector<T> vecFromJSArray(val v) {
-        auto l = v["length"].as<unsigned>();
+    template <typename T>
+    std::vector<T> vecFromJSArray(const val& v) {
+        const size_t l = v["length"].as<size_t>();
 
         std::vector<T> rv;
-        for(unsigned i = 0; i < l; ++i) {
+        rv.reserve(l);
+        for (size_t i = 0; i < l; ++i) {
             rv.push_back(v[i].as<T>());
         }
 
         return rv;
-    };
+    }
+
+    template <typename T>
+    std::vector<T> convertJSArrayToNumberVector(const val& v) {
+        const size_t l = v["length"].as<size_t>();
+
+        std::vector<T> rv;
+        rv.resize(l);
+
+        // Copy the array into our vector through the use of typed arrays.
+        // It will try to convert each element through Number().
+        // See https://www.ecma-international.org/ecma-262/6.0/#sec-%typedarray%.prototype.set-array-offset
+        // and https://www.ecma-international.org/ecma-262/6.0/#sec-tonumber
+        val memoryView{ typed_memory_view(l, rv.data()) };
+        memoryView.call<void>("set", v);
+
+        return rv;
+    }
 }

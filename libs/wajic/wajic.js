@@ -1,6 +1,6 @@
 /*
   WAjic - WebAssembly JavaScript Interface Creator
-  Copyright (C) 2020 Bernhard Schelling
+  Copyright (C) 2020-2021 Bernhard Schelling
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,8 +26,9 @@ var print = WA.print || (WA.print = msg => console.log(msg.replace(/\n$/, '')));
 var error = WA.error || (WA.error = (code, msg) => print('[ERROR] ' + code + ': ' + msg + '\n'));
 
 // Some global state variables and max heap definition
-var WM, ASM, MEM, MU8, MU16, MU32, MI32, MF32;
+var WM, ASM, MEM, MU8, MU16, MU32, MI32, MF32, FPTS = [0,0,0];
 var WASM_HEAP, WASM_HEAP_MAX = (WA.maxmem||256*1024*1024); //default max 256MB
+var WASM_STACK_SIZE = 64*1024; //wasm stack defaults to 64kb
 
 // A generic abort function that if called stops the execution of the program and shows an error
 var STOP, abort = WA.abort = function(code, msg)
@@ -76,6 +77,81 @@ var MSetViews = function()
 	MF32 = new Float32Array(buf);
 };
 
+// file open (can only be used to open embedded files)
+var fn_sys_open = function(path, flags, varargs)
+{
+	//console.log('__sys_open: path: ' + MStrGet(path) + ' - flags: ' + flags + ' - mode: ' + MU32[varargs>>2]);
+	var section = WebAssembly.Module.customSections(WA.wm, '|'+MStrGet(path))[0];
+	if (!section) return -1;
+	return FPTS.push(new Uint8Array(section), 0) - 2;
+};
+
+// The fd_write function can only be used to write strings to stdout in this wasm context
+var fn_fd_write = function(fd, iov, iovcnt, pOutResult)
+{
+	iov >>= 2;
+	for (var ret = 0, str = '', i = 0; i < iovcnt; i++)
+	{
+		// Process list of IO commands, read passed strings from heap
+		var ptr = MU32[iov++], len = MI32[iov++];
+		if (len < 0) return -1;
+		ret += len;
+		str += MStrGet(ptr, len);
+		//console.log('fd_write - fd: ' + fd + ' - ['+i+'][len:'+len+']: ' + MStrGet(ptr, len).replace(/\n/g, '\\n'));
+	}
+
+	// Print the passed string and write the number of bytes read to the result pointer
+	print(str);
+	MU32[pOutResult>>2] = ret;
+	return 0; // no error
+}
+
+// The fd_read function can only be used to read data from embedded files in this wasm context
+var fn_fd_read = function(fd, iov, iovcnt, pOutResult)
+{
+	var buf = FPTS[fd++], cursor = FPTS[fd]|0, ret = 0;
+	if (!buf) return 1;
+	iov >>= 2;
+	for (var i = 0; i < iovcnt && cursor != buf.length; i++)
+	{
+		var ptr = MU32[iov++], len = MU32[iov++];
+		var curr = Math.min(len, buf.length - cursor);
+		//console.log('fd_read - fd: ' + fd + ' - iovcnt: ' + iovcnt + ' - ptr: ' + ptr + ' - len: ' + len + ' - reading: ' + curr + ' (from ' + cursor + ' to ' + (cursor + curr) + ')');
+		MU8.set(buf.subarray(cursor, cursor + curr), ptr);
+		cursor += curr;
+		ret += curr;
+	}
+	FPTS[fd] = cursor;
+	//console.log('fd_read -     ret: ' + ret);
+	MU32[pOutResult>>2] = ret;
+	return 0;
+};
+
+// The fd_seek function can only be used to seek in embedded files in this wasm context
+var fn_fd_seek = function(fd, offset_low, offset_high, whence, pOutResult) //seek in payload
+{
+	var buf = FPTS[fd++], cursor = FPTS[fd]|0;
+	if (!buf) return 1;
+	if (whence == 0) cursor = offset_low; //set
+	if (whence == 1) cursor += offset_low; //cur
+	if (whence == 2) cursor = buf.length - offset_low; //end
+	if (cursor < 0) cursor = 0;
+	if (cursor > buf.length) cursor = buf.length;
+	//console.log('fd_seek - fd: ' + fd + ' - offset_high: ' + offset_high + ' - offset_low: ' + offset_low + ' - whence: ' +whence + ' - seek to: ' + cursor);
+	FPTS[fd] = MU32[pOutResult>>2] = cursor;
+	MU32[(pOutResult>>2)+1] = 0; // high
+	return 0;
+};
+
+// The fd_close clears an opened file buffer
+var fn_fd_close = function(fd)
+{
+	if (!FPTS[fd]) return 1;
+	//console.log('fd_close - fd: ' + fd);
+	FPTS[fd] = 0;
+	return 0;
+};
+
 // If WA.module has not been defined, try to load a file (if running with node) or use a data attribute on the script tag
 var load = WA.module;
 if (!load)
@@ -107,6 +183,11 @@ if (!load)
 		// Functions querying the system time
 		time: function(ptr) { var ret = (Date.now()/1000)|0; if (ptr) MU32[ptr>>2] = ret; return ret; },
 		gettimeofday: function(ptr) { var now = Date.now(); MU32[ptr>>2]=(now/1000)|0; MU32[(ptr+4)>>2]=((now % 1000)*1000)|0; },
+		clock_gettime: function(clock, tp) { clock = (clock ? window.performance.now() : Date.now()), tp >>= 2; if (tp) MU32[tp] = (clock/1000)|0, MU32[tp+1] = ((clock%1000)*1000000+.1)|0; },
+		clock_getres: function(clock, tp) { clock = (clock ? .1 : 1), tp >>= 2; if (tp) MU32[tp] = (clock/1000)|0, MU32[tp+1] = ((clock%1000)*1000000)|0; },
+
+		// Program exit
+		exit: function(status) { abort('EXIT', 'Exit called: ' + status); },
 
 		// Failed assert will abort the program
 		__assert_fail: (condition, filename, line, func) => crashFunction('assert ' + MStrGet(condition) + ' at: ' + (filename ? MStrGet(filename) : '?'), line, (func ? MStrGet(func) : '?')),
@@ -167,34 +248,19 @@ if (!load)
 				// Otherwise pass empty function for things that do nothing in this wasm context (setjmp, __cxa_atexit, __lock, __unlock)
 				obj[fld] = (Math[fld.replace(/^f?([^l].*?)f?$/, '$1').replace(/^rint$/,'round')]
 					|| (fld.match(/uncaught_excep|pure_virt|^abort$|^longjmp$/) && (() => crashFunction(fld)))
+					|| (fld.includes('open') && fn_sys_open)
 					|| emptyFunction);
 				if (env[fld] == emptyFunction) console.log("[WASM] Importing empty function for env." + fld);
 			}
 			if (mod.includes('wasi'))
 			{
 				// WASI (WebAssembly System Interface) can have varying module names (wasi_unstable/wasi_snapshot_preview1/wasi)
-				obj[fld] = (fld.includes('write') ?
-					function(fd, iov, iovcnt, pOutResult)
-					{
-						// The fd_write function can only be used to write strings to stdout in this wasm context
-						iov >>= 2;
-						for (var ret = 0, str = '', i = 0; i < iovcnt; i++)
-						{
-							// Process list of IO commands, read passed strings from heap
-							var ptr = MU32[iov++], len = MI32[iov++];
-							if (len < 0) return -1;
-							ret += len;
-							str += MStrGet(ptr, len);
-							//console.log('fd_write - fd: ' + fd + ' - ['+i+'][len:'+len+']: ' + MStrGet(ptr, len).replace(/\n/g, '\\n'));
-						}
-
-						// Print the passed string and write the number of bytes read to the result pointer
-						print(str);
-						MU32[pOutResult>>2] = ret;
-						return 0; // no error
-					}
-					// All other IO functions are not emulated so pass empty dummies (fd_read, fd_seek, fd_close)
-					: emptyFunction);
+				obj[fld] = fld.includes('write') ? fn_fd_write
+					: fld.includes('read') ? fn_fd_read
+					: fld.includes('seek') ? fn_fd_seek
+					: fld.includes('close') ? fn_fd_close
+					// All other IO functions are not emulated so pass empty dummies
+					: emptyFunction;
 			}
 		}
 	});
@@ -239,18 +305,12 @@ if (!load)
 	// If function 'main' exists, call it
 	if (main && malloc)
 	{
-		// Allocate 10 bytes of memory to store the argument list with 1 entry to pass to main
-		var ptr = malloc(10);
+		// Store program arguments and the argv list in memory
+		var args = WA.args||['W'], argc = args.length, argv = malloc((argc+1)<<2), i;
+		for (i = 0; i != argc; i++) MU32[(argv>>2)+i] = MStrPut(args[i]);
+		MU32[(argv>>2)+argc] = 0; // list terminating null pointer
 
-		// Place executable name string "W" after the argv list
-		MU8[ptr+8] = 87;
-		MU8[ptr+9] = 0;
-
-		// argv[0] contains the pointer to the executable name string, argv[1] has a list terminating null pointer
-		MU32[(ptr    )>>2] = (ptr + 8)
-		MU32[(ptr + 4)>>2] = 0;
-
-		main(1, ptr);
+		main(argc, argv);
 	}
 	else if (main)
 	{
