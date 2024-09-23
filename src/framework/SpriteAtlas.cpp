@@ -2,9 +2,9 @@
 #include "SpriteAtlas.h"
 #include "SpriteBatch.h"
 
-void SpriteAtlas::append_sheet(const std::string& filename,
+void SpriteAtlas::append_sheet(const Asset& asset,
     int sprite_width, int sprite_height) {
-  m_sheets.push_back({ Texture(filename), sprite_width, sprite_height });
+  m_sheets.push_back({ Texture(asset), sprite_width, sprite_height });
 }
 
 void SpriteAtlas::append_animation(bool looping, std::vector<Frame> frames) {

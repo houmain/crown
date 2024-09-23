@@ -1,4 +1,4 @@
 /_*
 /CMakeLists.txt.user
 /resources/_*
-/.xmake/*
+/build/

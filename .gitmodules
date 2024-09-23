@@ -1,0 +1,6 @@
+[submodule "libs/res2cpp"]
+	path = libs/res2cpp
+	url = https://github.com/houmain/res2cpp
+[submodule "libs/spright"]
+	path = libs/spright
+	url = https://github.com/houmain/spright

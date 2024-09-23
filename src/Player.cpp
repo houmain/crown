@@ -3,6 +3,7 @@
 #include "Graphics.h"
 #include "Object.h"
 #include "framework/audio.h"
+#include "_generated/assets.h"
 
 Player::Player()
   : Actor(EntityType::player) {
@@ -29,7 +30,7 @@ void Player::on_jump() {
     object.apply_force(0, -(jump_acceleration + jump_run_acceleration *
       std::fabs(object.velocity_x())));
 
-    play_audio("swing3.ogg", TWEAKABLE(0.6f));
+    play_audio(assets::sounds::swing3, TWEAKABLE(0.6f));
   }
   else if (object.velocity_y() < 0) {
     object.apply_force(0, -jump_hold_acceleration);
@@ -46,7 +47,7 @@ void Player::on_attack() {
     if (object.on_ground())
       object.apply_force(TWEAKABLE(-0.5f) * (looking_left() ? 1 : -1), 0);
 
-    play_audio("swing.ogg", TWEAKABLE(1.0f));
+    play_audio(assets::sounds::swing, TWEAKABLE(1.0f));
   }
 }
 
@@ -56,10 +57,10 @@ void Player::on_grounded() {
     m_state = State::grounded;
     m_state_counter = TWEAKABLE(2.5f) * object.velocity_y();
 
-    play_audio("swing2.ogg", TWEAKABLE(0.7f));
+    play_audio(assets::sounds::swing2, TWEAKABLE(0.7f));
   }
   else {
-    play_audio("swing2.ogg", TWEAKABLE(0.3f));
+    play_audio(assets::sounds::swing2, TWEAKABLE(0.3f));
   }
 }
 
@@ -90,7 +91,7 @@ void Player::update() {
 
         const auto frame_index = animation.get_frame_index(m_state_counter);
         if (prev_frame_index != frame_index && (frame_index == 3 || frame_index == 7))
-          play_audio("swing3.ogg", TWEAKABLE(0.3f));
+          play_audio(assets::sounds::swing3, TWEAKABLE(0.3f));
       }
       else {
         // idle

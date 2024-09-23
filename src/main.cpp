@@ -30,8 +30,8 @@ extern "C" {
 #include "framework/Texture.h"
 #include "framework/SpriteBatch.h"
 #include "framework/Target.h"
-#include "framework/get_resource.h"
 #include "framework/draw_tearing_indicator.h"
+#include "_generated/assets.h"
 
 #include "Game.h"
 #include <memory>
@@ -55,10 +55,10 @@ namespace {
 void platform_on_setup() {
   vg = nvgCreateGLES2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 
-  const auto font = get_resource("upheavtt.ttf");
+  const auto font = assets::fonts::menu;
   nvgCreateFontMem(vg, "sans",
-    static_cast<unsigned char*>(const_cast<void*>(font.first)),
-    static_cast<int>(font.second), 0);
+    const_cast<unsigned char*>(font.data),
+    static_cast<int>(font.size), 0);
 
   bind_default_target(native_width, native_height);
   Game::instantiate();
@@ -68,9 +68,9 @@ void platform_music_callback(float* output_frames, int frame_count) {
 #if defined(NDEBUG)
   static xm_context_t* xm_context;
   if (!xm_context) {
-    auto xm = get_resource("dualtrax.xm");
+    const auto music = assets::music::tune1;
     xm_create_context_safe(&xm_context,
-      reinterpret_cast<const char*>(xm.first), xm.second, 44100);
+      reinterpret_cast<const char*>(music.data), music.size, 44100);
 
     xm_context->global_volume = 0.5f;
   }

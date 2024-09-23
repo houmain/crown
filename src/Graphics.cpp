@@ -1,8 +1,9 @@
 
 #include "Graphics.h"
+#include "_generated/assets.h"
 
 Graphics::Graphics() :
-    m_sprites("sprites.png") {
+    m_sprites(assets::images::sprites) {
   glDisable(GL_BLEND);
   glBlendEquation(GL_FUNC_ADD);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

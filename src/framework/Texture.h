@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/platform.h"
+#include "Asset.h"
 #include "Resource.h"
 
 enum class TextureFormat {
@@ -13,7 +14,7 @@ enum class TextureFormat {
 class Texture {
 public:
   Texture() = default;
-  explicit Texture(std::string_view filename);
+  explicit Texture(const Asset& asset);
   Texture(TextureFormat format, int width, int height);
   GLuint texture_object() const { return m_texture_object; }
   TextureFormat format() const { return m_format; }

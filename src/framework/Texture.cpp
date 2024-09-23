@@ -23,8 +23,8 @@ namespace {
   }
 } // namespace
 
-Texture::Texture(std::string_view filename) {
-  auto image = ImageFile(filename);
+Texture::Texture(const Asset& asset) {
+  auto image = ImageFile(asset);
   switch (image.components()) {
     case 1: m_format = TextureFormat::R8; break;
     case 2: m_format = TextureFormat::RG8; break;

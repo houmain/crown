@@ -1,12 +1,13 @@
 #pragma once
 
 #include "Resource.h"
+#include "Asset.h"
 #include <string>
 
 class ImageFile {
 public:
   ImageFile() = default;
-  explicit ImageFile(std::string_view filename, int components = 0);
+  explicit ImageFile(const Asset& asset, int components = 0);
   int width() const { return m_width; }
   int height() const { return m_height; }
   int components() const { return m_components; }

@@ -1,12 +1,12 @@
 
 #include "ImageFile.h"
 #include "stb/stb_image.h"
-#include "get_resource.h"
 
-ImageFile::ImageFile(std::string_view filename, int components) {
-  auto res = get_resource(filename);
+ImageFile::ImageFile(const Asset& asset, int components) {
   m_data = {
-    stbi_load_from_memory((const stbi_uc*)res.first, static_cast<int>(res.second),
+    stbi_load_from_memory(
+      reinterpret_cast<const stbi_uc*>(asset.data), 
+      static_cast<int>(asset.size),
       &m_width, &m_height, &m_components, components),
     [](void* handle) { stbi_image_free(handle); }
   };

@@ -3,6 +3,7 @@
 #include "Graphics.h"
 #include "Object.h"
 #include "framework/audio.h"
+#include "_generated/assets.h"
 
 Pig::Pig()
   : Pig(EntityType::pig) {
@@ -49,7 +50,7 @@ void Pig::on_grounded() {
       m_state_counter = TWEAKABLE(2.5f) * object.velocity_y();
     }
   }
-  play_audio("swing2.ogg", TWEAKABLE(0.3f));
+  play_audio(assets::sounds::swing2, TWEAKABLE(0.3f));
 }
 
 void Pig::on_hit() {
@@ -59,7 +60,7 @@ void Pig::on_hit() {
   const auto& object = get_object();
   set_looking_left(object.velocity_x() > 0);
 
-  play_audio("grunt1.ogg", TWEAKABLE(0.5f));
+  play_audio(assets::sounds::grunt1, TWEAKABLE(0.5f));
 }
 
 void Pig::update() {
@@ -84,11 +85,11 @@ void Pig::update() {
 
         const auto frame_index = animation.get_frame_index(m_state_counter);
         if (prev_frame_index != frame_index && (frame_index == 2 || frame_index == 5))
-          play_audio("swing3.ogg", TWEAKABLE(0.3f));
+          play_audio(assets::sounds::swing3, TWEAKABLE(0.3f));
       }
       else {
         // idle
-        m_state_counter += TWEAKABLE(0.1);
+        m_state_counter += TWEAKABLE(0.1f);
       }
       update_input();
       break;

@@ -1,6 +1,5 @@
 
 #include "audio.h"
-#include "get_resource.h"
 #include "platform/platform.h"
 
 #define STB_VORBIS_NO_STDIO
@@ -13,10 +12,9 @@
 #include <cstring>
 
 namespace {
-  AudioBuffer load_ogg_vorbis_mono(std::string_view filename) {
-    auto file = get_resource(filename);
-    const auto data = static_cast<const unsigned char*>(file.first);
-    const auto size = static_cast<int>(file.second);
+  AudioBuffer load_ogg_vorbis_mono(const Asset& asset) {
+    const auto data = asset.data;
+    const auto size = static_cast<int>(asset.size);
 
     auto samples = std::add_pointer_t<float>{ };
 
@@ -25,6 +23,7 @@ namespace {
       auto offset = 0;
       auto error = 0;
       auto vorbis = stb_vorbis_open_pushdata(data, size, &offset, &error, nullptr);
+      assert(vorbis);
 
       auto sample_count = 0;
       auto channels = 0;
@@ -58,15 +57,15 @@ namespace {
     }
   }
 
-  AudioBuffer get_audio_buffer(std::string_view filename) {
-    static auto s_cache = std::map<std::string, AudioBuffer, std::less<>>();
-    auto it = s_cache.find(filename);
+  AudioBuffer get_audio_buffer(const Asset& asset) {
+    static auto s_cache = std::map<const Asset*, AudioBuffer, std::less<>>();
+    auto it = s_cache.find(&asset);
     if (it == s_cache.end())
-      it = s_cache.emplace(filename, load_ogg_vorbis_mono(filename)).first;
+      it = s_cache.emplace(&asset, load_ogg_vorbis_mono(asset)).first;
     return it->second;
   }
 } // namespace
 
-void play_audio(std::string_view filename, float volume) {
-  platform_play_audio(get_audio_buffer(filename), volume, volume);
+void play_audio(const Asset& asset, float volume) {
+  platform_play_audio(get_audio_buffer(asset), volume, volume);
 }

@@ -10,13 +10,13 @@ class NvgImage {
 public:
   NvgImage() = default;
 
-  explicit NvgImage(std::string_view filename, int flags = 0) {
-    auto img = ImageFile(filename);
+  explicit NvgImage(const Asset& asset, int flags = 0) {
+    auto img = ImageFile(asset);
     m_width = img.width();
     m_height = img.height();
     m_image = {
       nvgCreateImageRGBA(vg, img.width(), img.height(),
-        flags, (const unsigned char*)img.data()),
+        flags, static_cast<const unsigned char*>(img.data())),
       [](int image) { nvgDeleteImage(vg, image); }
     };
   }

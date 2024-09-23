@@ -12,7 +12,7 @@ public:
     float duration;
   };
 
-  void append_sheet(const std::string& filename, int sprite_width, int sprite_height);
+  void append_sheet(const Asset& asset, int sprite_width, int sprite_height);
   void append_animation(bool looping, std::vector<Frame> frames);
 
   void draw(SpriteBatch& batch, int animation_id, float x, float y,

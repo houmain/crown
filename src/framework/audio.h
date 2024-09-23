@@ -1,5 +1,5 @@
 #pragma once
 
-#include <string>
+#include "Asset.h"
 
-void play_audio(std::string_view filename, float volume = 1.0f);
+void play_audio(const Asset& asset, float volume = 1.0f);

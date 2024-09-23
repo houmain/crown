@@ -1,12 +1,13 @@
 
 #include "World.h"
 #include "Graphics.h"
-#include "resources/_generated/tiles.h"
+#include "_generated/tiles.h"
+#include "_generated/assets.h"
 #include <random>
 #include <algorithm>
 
 World::World()
-  : m_tiles("tiles.png") {
+  : m_tiles(assets::images::tiles) {
 }
 
 void World::generate(int cells_x, int cells_y, int seed) {
