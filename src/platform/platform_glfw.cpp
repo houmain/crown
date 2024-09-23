@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <vector>
 #include <atomic>
+#include <array>
 
 namespace {
   GLFWwindow* g_window;

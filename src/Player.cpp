@@ -15,7 +15,8 @@ void Player::on_run() {
   const auto run_acceleration = TWEAKABLE(0.3f);
   const auto fly_acceleration = TWEAKABLE(0.05f);
   auto& object = get_object();
-  object.apply_force((object.on_ground() ? run_acceleration : fly_acceleration) *
+  object.apply_force((object.on_ground() ? 
+    static_cast<float>(run_acceleration) : fly_acceleration) *
     (looking_left() ? -1 : 1), 0);
 }
 

@@ -8,9 +8,9 @@ struct Tile {
   int x, y;
 };
 
-{% for tag in tags -%}
-struct {{ tag.value }} {
-{% for index in tag.spriteIndices %}{% set sprite=at(sprites, index) %}
+{% for value, indices in tags.tileset -%}
+struct {{ value }} {
+{% for index in indices %}{% set sprite=at(sprites, index) %}
   static constexpr Tile tile_{{ sprite.id }} { {{ sprite.trimmedRect.x }}, {{ sprite.trimmedRect.y }} };
 {% endfor -%}
 };
