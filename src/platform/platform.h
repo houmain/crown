@@ -50,6 +50,7 @@ enum class KeyCode {
   KeyX = 88, // GLFW_KEY_X
   KeyY = 89, // GLFW_KEY_Y
   KeyZ = 90, // GLFW_KEY_Z
+  Escape = 256, // GLFW_KEY_ESCAPE,
   ArrowRight = 262, // GLFW_KEY_RIGHT
   ArrowLeft = 263, // GLFW_KEY_LEFT
   ArrowDown = 264, // GLFW_KEY_DOWN
@@ -77,3 +78,4 @@ void platform_music_callback(float* output_frames, int frame_count);
 
 void platform_play_audio(AudioBuffer buffer, float volume_left, float volume_right);
 void platform_error(const char* message);
+void platform_exit();

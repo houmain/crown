@@ -136,6 +136,10 @@ void platform_error(const char* message) {
   std::abort();
 }
 
+void platform_exit() {
+  glfwSetWindowShouldClose(g_window, GLFW_TRUE);
+}
+
 void platform_play_audio(AudioBuffer buffer, float volume_left, float volume_right) {
   g_audio_buffer_manager.play(std::move(buffer), volume_left, volume_right);
 }

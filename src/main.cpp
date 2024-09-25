@@ -44,8 +44,8 @@ NVGcontext* vg;
 const char* platform_window_title = "The Crown And The Bombs";
 const int platform_minimum_width = native_width;
 const int platform_minimum_height = native_height;
-const int platform_initial_width = native_width * 2;
-const int platform_initial_height = native_height * 2;
+const int platform_initial_width = native_width * 3 / 2;
+const int platform_initial_height = native_height * 3 /2;
 
 namespace {
   Target target;
@@ -105,6 +105,10 @@ void platform_on_key(KeyCode key, bool down) {
         bind_default_target(native_width, native_height);
         Game::instantiate();
       }
+      break;
+
+    case KeyCode::KeyQ:
+      platform_exit();
       break;
 
     default:
