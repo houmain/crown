@@ -18,7 +18,7 @@ Game::Game() {
   const auto cells_x = target_width() / m_world.tile_size;
   const auto cells_y = target_height() / m_world.tile_size;
 
-  static auto seed = 1;
+  static auto seed = 99;
   m_world.generate(cells_x, cells_y, seed++);
   m_world.generate_texture(m_graphics, target_width(), target_height());
 

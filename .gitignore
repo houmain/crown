@@ -2,3 +2,5 @@
 /CMakeLists.txt.user
 /resources/_*
 /build/
+/src/_version.h
+/build-web/

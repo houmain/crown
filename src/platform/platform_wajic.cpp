@@ -156,6 +156,9 @@ void platform_play_audio(AudioBuffer buffer, float volume_left, float volume_rig
     std::max(volume_left, volume_right));
 }
 
+void platform_exit() {
+}
+
 int main() {
   WASetupCanvas(platform_minimum_width, platform_minimum_height);
   WASetupInput();
