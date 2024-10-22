@@ -8,16 +8,31 @@ It is still just a tech demo. Use cursor keys to run, CTRL to hammer, R to regen
 
 ## Dependencies
 
-A C++17 conforming compiler is required. Scripts for the
-[xmake](https://xmake.io) and [CMake](https://cmake.org) build systems are provided.
+A C++17 conforming compiler is required. A scripts for the [CMake](https://cmake.org) build systems is provided.
+
+## Building 
+
+**Checking out the source:**
+
+```
+git clone --recurse-submodules https://github.com/houmain/crown
+```
+
+**Building for your desktop platform:**
+
+```
+cd crown
+cmake -B build
+cmake --build build
+```
+
+**Building for the web:**
 
 The web version is powerd by [WAjic](https://github.com/schellingb/wajic). Only [LLVM](https://releases.llvm.org/download.html) and [nodejs](https://nodejs.org) need to be installed (no Emscripten).
 
-## Building
+```
+cd crown
+cmake -B build-web -DCMAKE_TOOLCHAIN_FILE=cmake/clang-wajic.cmake
+cmake --build build-web
+```
 
-### For your desktop platform:
-  ```xmake```
-
-### For your web browser:
-
-  ```xmake f -p web && xmake```
